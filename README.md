@@ -1,6 +1,6 @@
-# PepperRV
+# Risky32
 
-PepperRV is a simulator of RISC-V version Pepper architecture.
+Risky32 is a RISC-V simulator written in C++.
 
 ## Details
 
@@ -13,6 +13,9 @@ PepperRV is a simulator of RISC-V version Pepper architecture.
 - [ ] Zicsr extension
 - [ ] M extension
 - [ ] A extension
+- [ ] F extension
+- [ ] D extension
+- [ ] JIT
 
 ## Copyright and License
 
