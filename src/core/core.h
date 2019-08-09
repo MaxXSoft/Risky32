@@ -5,10 +5,11 @@
 #include <cstddef>
 
 #include "bus/bus.h"
+#include "core/state.h"
 
 class Core {
  public:
-  Core(Bus &bus) : bus_(bus) {}
+  Core(Bus &bus) : state_(bus) {}
 
   // reset the state of current core
   void Reset();
@@ -17,17 +18,12 @@ class Core {
 
   // getters
   // value of specific register
-  std::uint32_t reg(std::size_t addr) { regs_[addr]; }
+  std::uint32_t reg(std::size_t addr) { state_.regs[addr]; }
   // value of program counter
-  std::uint32_t pc() { return pc_; }
+  std::uint32_t pc() { return state_.pc; }
 
  private:
-  // system bus
-  Bus &bus_;
-  // registers
-  std::uint32_t regs_[32];
-  // program counter
-  std::uint32_t pc_;
+  CoreState state_;
 };
 
 #endif  // RISKY32_CORE_CORE_H_
