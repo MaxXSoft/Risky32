@@ -144,7 +144,7 @@ constexpr std::uint32_t kBLTU     = 0b110;
 constexpr std::uint32_t kBGEU     = 0b111;
 
 // 'funct3' field in 'SYSTEM' instructions
-constexpr std::uint32_t kPRIV     = 0b000;  // ECALL/EBREAK
+constexpr std::uint32_t kPRIV     = 0b000;  // ECALL/EBREAK/MRET/WFI
 constexpr std::uint32_t kCSRRW    = 0b001;
 constexpr std::uint32_t kCSRRS    = 0b010;
 constexpr std::uint32_t kCSRRC    = 0b011;
@@ -155,5 +155,7 @@ constexpr std::uint32_t kCSRRCI   = 0b111;
 // 'imm' field in 'SYSTEM' instructions
 constexpr std::uint32_t kECALL    = 0b000000000000;
 constexpr std::uint32_t kEBREAK   = 0b000000000001;
+constexpr std::uint32_t kMRET     = 0b001100000010;
+constexpr std::uint32_t kWFI      = 0b000100000101;
 
 #endif  // RISKY32_DEFINE_INST_H_
