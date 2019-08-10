@@ -11,9 +11,7 @@ struct CoreState {
   // copy operator
   CoreState &operator=(const CoreState &rhs) {
     if (&rhs != this) {
-      this->bus = rhs.bus;
-      std::memcpy(this->regs, rhs.regs, sizeof(regs));
-      this->pc = rhs.pc;
+      std::memcpy(this, &rhs, sizeof(CoreState));
     }
     return *this;
   }
