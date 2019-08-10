@@ -3,7 +3,7 @@
 
 #include "core/unit/unit.h"
 
-class LoadStoreUnit : public UnitInterface {
+class LoadStoreUnit : public UnitBase {
  public:
   void ExecuteR(const InstR &inst, CoreState &state) override;
   void ExecuteI(const InstI &inst, CoreState &state) override;
