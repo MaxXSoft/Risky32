@@ -20,9 +20,8 @@ class UnitBase {
   // execute a U-type instruction
   virtual void ExecuteU(const InstU &inst, CoreState &state) = 0;
 
- protected:
   // exception handler
-  void RaiseException(std::uint32_t exc_code, CoreState &state);
+  static void RaiseException(std::uint32_t exc_code, CoreState &state);
 };
 
 using UnitPtr = std::shared_ptr<UnitBase>;
