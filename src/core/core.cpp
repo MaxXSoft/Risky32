@@ -92,7 +92,12 @@ void Core::NextCycle() {
         }
         break;
       }
-      default: assert(false); break;
+      default: {
+        // just ignore
+        // since 'illegal instruction' exception has benn handled before
+        assert(false);
+        break;
+      }
     }
   }
   // handle exception
