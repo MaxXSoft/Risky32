@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "define/exception.h"
+
 namespace {
 
 std::uint32_t PerformIntOp(std::uint32_t opr1, std::uint32_t opr2,
@@ -25,7 +27,12 @@ std::uint32_t PerformIntOp(std::uint32_t opr1, std::uint32_t opr2,
     }
     case kOR: return opr1 | opr2;
     case kAND: return opr1 & opr2;
-    default: assert(false);
+    default: {
+      // unreachable situation
+      // because 'funct3' only has 3 bits and
+      // all 8 cases have been handled before
+      assert(false);
+    }
   }
 }
 
@@ -43,9 +50,20 @@ void IntUnit::ExecuteR(const InstR &inst, CoreState &state) {
   else {
     opr2 = state.regs[inst.rs2];
   }
+  // get instruction type
+  bool is_type_2;
+  if (inst.funct7 == kRV32I1) {
+    is_type_2 = false;
+  }
+  else if (inst.funct7 == kRV32I2) {
+    is_type_2 = true;
+  }
+  else {
+    // invalid 'funct7' field
+    RaiseException(kExcIllegalInst, state);
+  }
   // calculate
-  state.regs[inst.rd] = PerformIntOp(opr1, opr2, inst.funct3,
-                                     inst.funct7 == kRV32I2);
+  state.regs[inst.rd] = PerformIntOp(opr1, opr2, inst.funct3, is_type_2);
 }
 
 void IntUnit::ExecuteI(const InstI &inst, CoreState &state) {
@@ -67,9 +85,11 @@ void IntUnit::ExecuteU(const InstU &inst, CoreState &state) {
     // 'AUIPC'
     state.regs[inst.rd] = state.pc + (inst.imm << 12);
   }
-  else {
+  else if (inst.opcode == kLUI) {
     // 'LUI'
-    assert(inst.opcode == kLUI);
     state.regs[inst.rd] = inst.imm << 12;
+  }
+  else {
+    RaiseException(kExcIllegalInst, state);
   }
 }
