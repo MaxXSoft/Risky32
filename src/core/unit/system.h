@@ -1,7 +1,7 @@
 #ifndef RISKY32_CORE_UNIT_SYSTEM_H_
 #define RISKY32_CORE_UNIT_SYSTEM_H_
 
-#include "core/unit/unit.h"
+#include "core/unit.h"
 
 class SystemUnit : public UnitBase {
  public:

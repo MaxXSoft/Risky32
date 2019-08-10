@@ -1,7 +1,7 @@
 #ifndef RISKY32_CORE_UNIT_BRANCH_H_
 #define RISKY32_CORE_UNIT_BRANCH_H_
 
-#include "core/unit/unit.h"
+#include "core/unit.h"
 
 class BranchUnit : public UnitBase {
  public:
