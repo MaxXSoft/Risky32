@@ -7,7 +7,7 @@
 
 #include "bus/bus.h"
 #include "core/state.h"
-#include "core/unit/unit.h"
+#include "core/unit.h"
 
 class Core {
  public:

@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "define/define.h"
+#include "define/exception.h"
 #include "define/inst.h"
 
 // functional units
@@ -40,58 +40,64 @@ void Core::Reset() {
 void Core::NextCycle() {
   // fetch instruction
   auto inst_data = state_.bus.ReadWord(state_.pc);
+  auto state = state_;
   // select functional unit
   auto inst = reinterpret_cast<Inst *>(&inst_data);
   auto it = units_.find(inst->opcode);
   if (it == units_.end()) {
-    // TODO: exception
-    return;
+    // illegal instruction
+    UnitBase::RaiseException(kExcIllegalInst, state);
   }
-  // decode & execute
-  switch (inst->opcode) {
-    // R-type
-    case kAMO: case kOp: {
-      auto inst_r = reinterpret_cast<InstR *>(&inst_data);
-      it->second->ExecuteR(*inst_r, state_);
-      break;
-    }
-    // I-type
-    case kLoad: case kMiscMem: case kJALR: case kSystem: {
-      auto inst_i = reinterpret_cast<InstI *>(&inst_data);
-      it->second->ExecuteI(*inst_i, state_);
-      break;
-    }
-    // S-type
-    case kStore: case kBranch: {
-      auto inst_s = reinterpret_cast<InstS *>(&inst_data);
-      it->second->ExecuteS(*inst_s, state_);
-      break;
-    }
-    // U-type
-    case kAUIPC: case kLUI: case kJAL: {
-      auto inst_u = reinterpret_cast<InstU *>(&inst_data);
-      it->second->ExecuteU(*inst_u, state_);
-      break;
-    }
-    // other
-    case kOpImm: {
-      auto inst_i = reinterpret_cast<InstI *>(&inst_data);
-      switch (inst_i->funct3) {
-        case kSLLI: case kSRXI: {
-          // treat 'SLLI', 'SRLI' and 'SRAI' as R-type
-          auto inst_r = reinterpret_cast<InstR *>(&inst_data);
-          it->second->ExecuteR(*inst_r, state_);
-          break;
-        }
-        default: {
-          it->second->ExecuteI(*inst_i, state_);
-          break;
-        }
+  else {
+    // decode & execute
+    switch (inst->opcode) {
+      // R-type
+      case kAMO: case kOp: {
+        auto inst_r = reinterpret_cast<InstR *>(&inst_data);
+        it->second->ExecuteR(*inst_r, state);
+        break;
       }
-      break;
+      // I-type
+      case kLoad: case kMiscMem: case kJALR: case kSystem: {
+        auto inst_i = reinterpret_cast<InstI *>(&inst_data);
+        it->second->ExecuteI(*inst_i, state);
+        break;
+      }
+      // S-type
+      case kStore: case kBranch: {
+        auto inst_s = reinterpret_cast<InstS *>(&inst_data);
+        it->second->ExecuteS(*inst_s, state);
+        break;
+      }
+      // U-type
+      case kAUIPC: case kLUI: case kJAL: {
+        auto inst_u = reinterpret_cast<InstU *>(&inst_data);
+        it->second->ExecuteU(*inst_u, state);
+        break;
+      }
+      // other
+      case kOpImm: {
+        auto inst_i = reinterpret_cast<InstI *>(&inst_data);
+        switch (inst_i->funct3) {
+          case kSLLI: case kSRXI: {
+            // treat 'SLLI', 'SRLI' and 'SRAI' as R-type
+            auto inst_r = reinterpret_cast<InstR *>(&inst_data);
+            it->second->ExecuteR(*inst_r, state);
+            break;
+          }
+          default: {
+            it->second->ExecuteI(*inst_i, state);
+            break;
+          }
+        }
+        break;
+      }
+      default: assert(false); break;
     }
-    default: assert(false); break;
   }
+  // handle exception
+  // TODO
+  state_ = state;
   // prepare for next cycle
   state_.regs[0] = 0;
   state_.pc += 4;
