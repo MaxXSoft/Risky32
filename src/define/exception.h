@@ -3,6 +3,14 @@
 
 #include <cstdint>
 
+/*
+
+NOTE:
+  access fault: trying to access memory without permission
+  page fault:   trying to access page that does not exists
+
+*/
+
 // reset vector of all harts
 constexpr std::uint32_t kResetVector          = 0x00001000;
 
