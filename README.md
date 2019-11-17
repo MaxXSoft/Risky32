@@ -11,7 +11,7 @@ Risky32 is a RISC-V simulator written in C++.
 - [ ] RV32I
 - [ ] Zifencei extension
 - [ ] Zicsr extension
-- [ ] M extension
+- [x] M extension
 - [ ] A extension
 - [ ] F extension
 - [ ] D extension
