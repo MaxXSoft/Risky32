@@ -22,9 +22,9 @@ class UnitBase {
 
   // exception handler
   static void RaiseException(std::uint32_t exc_code, CoreState &state);
-  // exception handler (with bad address when accessing memory)
-  static void RaiseException(std::uint32_t exc_code, std::uint32_t bad_addr,
-                             CoreState &state);
+  // exception handler (with trap value required by some exceptions)
+  static void RaiseException(std::uint32_t exc_code,
+                             std::uint32_t trap_value, CoreState &state);
 };
 
 using UnitPtr = std::shared_ptr<UnitBase>;
