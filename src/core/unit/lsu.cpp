@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "define/exception.h"
+#include "util/cast.h"
 
 namespace {
 
@@ -73,7 +74,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
       }
       default: {
         // invalid 'funct3' field
-        RaiseException(kExcIllegalInst, state);
+        RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
         break;
       }
     }
@@ -91,7 +92,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
       }
       default: {
         // invalid 'funct3' field
-        RaiseException(kExcIllegalInst, state);
+        RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
         break;
       }
     }
@@ -131,7 +132,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
     }
     default: {
       // invalid 'funct3' field
-      RaiseException(kExcIllegalInst, state);
+      RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
       break;
     }
   }

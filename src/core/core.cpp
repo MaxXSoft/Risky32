@@ -46,7 +46,7 @@ void Core::NextCycle() {
   auto it = units_.find(inst->opcode);
   if (it == units_.end()) {
     // illegal instruction
-    UnitBase::RaiseException(kExcIllegalInst, state);
+    UnitBase::RaiseException(kExcIllegalInst, inst_data, state);
   }
   else {
     // decode & execute
