@@ -5,14 +5,16 @@
 #include "define/exception.h"
 #include "util/cast.h"
 
-// helper macro
-#define DO_BRANCH(target, state)                         \
-  if (target & 0b11) {                                   \
-    RaiseException(kExcInstAddrMisalign, target, state); \
-  }                                                      \
-  else {                                                 \
-    state.pc = target;                                   \
-  }
+// helper macro for 'BRANCH' instructions
+#define DO_BRANCH(target, state)                           \
+  do {                                                     \
+    if (target & 0b11) {                                   \
+      RaiseException(kExcInstAddrMisalign, target, state); \
+    }                                                      \
+    else {                                                 \
+      state.pc = target;                                   \
+    }                                                      \
+  } while (0)
 
 void BranchUnit::ExecuteR(const InstR &inst, CoreState &state) {
   assert(false);
