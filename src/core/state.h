@@ -9,6 +9,7 @@
 
 struct CoreState {
   CoreState(Bus &bus, CSR &csr) : bus(bus), csr(csr) {}
+
   // copy operator
   CoreState &operator=(const CoreState &rhs) {
     if (&rhs != this) {
@@ -16,6 +17,11 @@ struct CoreState {
     }
     return *this;
   }
+
+  // raise an exception
+  void RaiseException(std::uint32_t exc_code);
+  // raise an exception (with trap value required by some exceptions)
+  void RaiseException(std::uint32_t exc_code, std::uint32_t trap_val);
 
   // system bus
   Bus &bus;
