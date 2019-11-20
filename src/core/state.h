@@ -22,6 +22,8 @@ struct CoreState {
   void RaiseException(std::uint32_t exc_code);
   // raise an exception (with trap value required by some exceptions)
   void RaiseException(std::uint32_t exc_code, std::uint32_t trap_val);
+  // return from trap in specific mode (U, S or M)
+  void ReturnFromTrap(std::uint32_t mode);
 
   // system bus
   Bus &bus;
