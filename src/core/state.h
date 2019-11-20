@@ -5,9 +5,10 @@
 #include <cstdlib>
 
 #include "bus/bus.h"
+#include "core/csr.h"
 
 struct CoreState {
-  CoreState(Bus &bus) : bus(bus) {}
+  CoreState(Bus &bus, CSR &csr) : bus(bus), csr(csr) {}
   // copy operator
   CoreState &operator=(const CoreState &rhs) {
     if (&rhs != this) {
@@ -18,6 +19,8 @@ struct CoreState {
 
   // system bus
   Bus &bus;
+  // CSR
+  CSR &csr;
   // registers
   std::uint32_t regs[32];
   // program counter

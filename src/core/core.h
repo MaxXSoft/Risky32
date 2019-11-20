@@ -8,10 +8,11 @@
 #include "bus/bus.h"
 #include "core/state.h"
 #include "core/unit.h"
+#include "core/csr.h"
 
 class Core {
  public:
-  Core(Bus &bus) : state_(bus) { InitUnits(); }
+  Core(Bus &bus) : state_(bus, csr_) { InitUnits(); }
 
   // reset the state of current core
   void Reset();
@@ -32,6 +33,8 @@ class Core {
   CoreState state_;
   // functional units
   std::unordered_map<std::uint32_t, UnitPtr> units_;
+  // CSR
+  CSR csr_;
 };
 
 #endif  // RISKY32_CORE_CORE_H_
