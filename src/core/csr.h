@@ -8,7 +8,9 @@ class CSR {
  public:
   CSR();
 
+  // read data from CSR
   std::uint32_t ReadData(std::uint32_t addr);
+  // write data to CSR
   void WriteData(std::uint32_t addr, std::uint32_t value);
 
   // setters
