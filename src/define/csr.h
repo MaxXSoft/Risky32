@@ -3,6 +3,11 @@
 
 #include <cstdint>
 
+// privilege levels
+constexpr std::uint32_t kPrivLevelU     = 0b00;
+constexpr std::uint32_t kPrivLevelS     = 0b01;
+constexpr std::uint32_t kPrivLevelM     = 0b11;
+
 // machine information registers (read only)
 constexpr std::uint32_t kCSRMVenderId   = 0xf11;
 constexpr std::uint32_t kCSRMArchId     = 0xf12;
