@@ -104,7 +104,7 @@ void IntUnit::ExecuteR(const InstR &inst, CoreState &state) {
   if (inst.funct7 != kRV32I1 && inst.funct7 != kRV32I2 &&
       inst.funct7 != kRV32M) {
     // invalid 'funct7' field
-    RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
+    state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
   }
   // calculate
   state.regs[inst.rd] = PerformIntOp(opr1, opr2, inst.funct3, inst.funct7);
@@ -134,6 +134,6 @@ void IntUnit::ExecuteU(const InstU &inst, CoreState &state) {
     state.regs[inst.rd] = inst.imm << 12;
   }
   else {
-    RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
+    state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
   }
 }

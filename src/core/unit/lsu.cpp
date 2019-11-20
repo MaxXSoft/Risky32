@@ -37,7 +37,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
         // load signed half word
         if (addr & 0b1) {
           // misalligned address
-          RaiseException(kExcLoadAddrMisalign, addr, state);
+          state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
           std::int16_t data = state.bus.ReadHalf(addr);
@@ -49,7 +49,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
         // load word
         if (addr & 0b11) {
           // misalligned address
-          RaiseException(kExcLoadAddrMisalign, addr, state);
+          state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
           state.regs[inst.rd] = state.bus.ReadWord(addr);
@@ -65,7 +65,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
         // load unsigned half word
         if (addr & 0b1) {
           // misalligned address
-          RaiseException(kExcLoadAddrMisalign, addr, state);
+          state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
           state.regs[inst.rd] = state.bus.ReadHalf(addr);
@@ -74,7 +74,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
       }
       default: {
         // invalid 'funct3' field
-        RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
+        state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
         break;
       }
     }
@@ -92,7 +92,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
       }
       default: {
         // invalid 'funct3' field
-        RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
+        state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
         break;
       }
     }
@@ -112,7 +112,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
       // store half word
       if (addr & 0b1) {
         // misalligned address
-        RaiseException(kExcStAMOAddrMisalign, addr, state);
+        state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {
         state.bus.WriteHalf(addr, state.regs[inst.rs2]);
@@ -123,7 +123,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
       // store word
       if (addr & 0b11) {
         // misalligned address
-        RaiseException(kExcStAMOAddrMisalign, addr, state);
+        state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {
         state.bus.WriteWord(addr, state.regs[inst.rs2]);
@@ -132,7 +132,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
     }
     default: {
       // invalid 'funct3' field
-      RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
+      state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
       break;
     }
   }

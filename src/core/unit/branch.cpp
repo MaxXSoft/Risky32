@@ -6,14 +6,14 @@
 #include "util/cast.h"
 
 // helper macro for 'BRANCH' instructions
-#define DO_BRANCH(target, state)                           \
-  do {                                                     \
-    if (target & 0b11) {                                   \
-      RaiseException(kExcInstAddrMisalign, target, state); \
-    }                                                      \
-    else {                                                 \
-      state.pc = target;                                   \
-    }                                                      \
+#define DO_BRANCH(target, state)                          \
+  do {                                                    \
+    if (target & 0b11) {                                  \
+      state.RaiseException(kExcInstAddrMisalign, target); \
+    }                                                     \
+    else {                                                \
+      state.pc = target;                                  \
+    }                                                     \
   } while (0)
 
 void BranchUnit::ExecuteR(const InstR &inst, CoreState &state) {
@@ -25,7 +25,7 @@ void BranchUnit::ExecuteI(const InstI &inst, CoreState &state) {
   auto offset = inst.imm & 0x800 ? 0xfffff000 | inst.imm : inst.imm;
   auto target = (state.regs[inst.rs1] + offset) & ~0b1;
   if (target & 0b11) {
-    RaiseException(kExcInstAddrMisalign, target, state);
+    state.RaiseException(kExcInstAddrMisalign, target);
   }
   // perform 'JALR'
   state.regs[inst.rd] = state.pc + 4;
@@ -78,7 +78,7 @@ void BranchUnit::ExecuteS(const InstS &inst, CoreState &state) {
     }
     default: {
       // invalid 'funct3' field
-      RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst), state);
+      state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
       break;
     }
   }
@@ -95,7 +95,7 @@ void BranchUnit::ExecuteU(const InstU &inst, CoreState &state) {
   // get target address
   auto target = state.pc + offset;
   if (target & 0b11) {
-    RaiseException(kExcInstAddrMisalign, target, state);
+    state.RaiseException(kExcInstAddrMisalign, target);
   }
   // perform 'JAL'
   state.regs[inst.rd] = state.pc + 4;
