@@ -3,11 +3,12 @@
 #include <cassert>
 
 #include "define/exception.h"
+#include "define/csr.h"
 #include "util/cast.h"
 
 namespace {
 
-void PerformPrivilleged(const InstI &inst, CoreState &state) {
+void PerformPrivileged(const InstI &inst, CoreState &state) {
   switch (inst.imm) {
     case kECALL: {
       // environment call
@@ -20,15 +21,13 @@ void PerformPrivilleged(const InstI &inst, CoreState &state) {
       break;
     }
     case kMRET: {
-      // return from trap
-      // TODO: implementation required
-      assert(false);
+      // return from trap in machine mode
+      state.ReturnFromTrap(kPrivLevelM);
       break;
     }
     case kWFI: {
       // wait for interrupt
-      // TODO: implementation required
-      assert(false);
+      // just implement 'WFI' as a 'NOP'
       break;
     }
     default: {
@@ -49,12 +48,12 @@ void SystemUnit::ExecuteI(const InstI &inst, CoreState &state) {
   // 'SYSTEM' instructions
   switch (inst.funct3) {
     case kPRIV: {
-      // privilleged instructions
+      // privileged instructions
       if (inst.rs1 || inst.rd) {
         state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
       }
       else {
-        PerformPrivilleged(inst, state);
+        PerformPrivileged(inst, state);
       }
       break;
     }
