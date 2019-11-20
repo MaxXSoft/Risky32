@@ -19,12 +19,6 @@ class UnitBase {
   virtual void ExecuteS(const InstS &inst, CoreState &state) = 0;
   // execute a U-type instruction
   virtual void ExecuteU(const InstU &inst, CoreState &state) = 0;
-
-  // exception handler
-  static void RaiseException(std::uint32_t exc_code, CoreState &state);
-  // exception handler (with trap value required by some exceptions)
-  static void RaiseException(std::uint32_t exc_code,
-                             std::uint32_t trap_value, CoreState &state);
 };
 
 using UnitPtr = std::shared_ptr<UnitBase>;
