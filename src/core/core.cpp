@@ -33,13 +33,15 @@ void Core::InitUnits() {
 }
 
 void Core::Reset() {
-  for (auto &&i : state_.regs) i = 0;
-  state_.pc = kResetVector;
+  for (int i = 0; i < 32; ++i) {
+    state_.regs(i) = 0;
+  }
+  state_.pc() = kResetVector;
 }
 
 void Core::NextCycle() {
   // fetch instruction
-  auto inst_data = state_.bus.ReadWord(state_.pc);
+  auto inst_data = state_.bus().ReadWord(state_.pc());
   auto state = state_;
   // select functional unit
   auto inst = reinterpret_cast<Inst *>(&inst_data);
@@ -104,6 +106,6 @@ void Core::NextCycle() {
   // TODO
   state_ = state;
   // prepare for next cycle
-  state_.regs[0] = 0;
-  state_.pc += 4;
+  state_.regs(0) = 0;
+  state_.pc() += 4;
 }

@@ -58,31 +58,31 @@ void SystemUnit::ExecuteI(const InstI &inst, CoreState &state) {
       break;
     }
     case kCSRRW: case kCSRRWI: {
-      auto val = inst.funct3 == kCSRRW ? state.regs[inst.rs1] : inst.rs1;
+      auto val = inst.funct3 == kCSRRW ? state.regs(inst.rs1) : inst.rs1;
       // atomic read/write
       if (inst.rd) {
-        state.regs[inst.rd] = state.csr.ReadData(inst.imm);
+        state.regs(inst.rd) = state.csr().ReadData(inst.imm);
       }
-      state.csr.WriteData(inst.imm, val);
+      state.csr().WriteData(inst.imm, val);
       break;
     }
     case kCSRRS: case kCSRRSI: {
-      auto mask = inst.funct3 == kCSRRS ? state.regs[inst.rs1] : inst.rs1;
+      auto mask = inst.funct3 == kCSRRS ? state.regs(inst.rs1) : inst.rs1;
       // atomic read and set bits
-      auto val = state.csr.ReadData(inst.imm);
-      state.regs[inst.rd] = val;
+      auto val = state.csr().ReadData(inst.imm);
+      state.regs(inst.rd) = val;
       if (inst.rs1) {
-        state.csr.WriteData(inst.imm, val | mask);
+        state.csr().WriteData(inst.imm, val | mask);
       }
       break;
     }
     case kCSRRC: case kCSRRCI: {
-      auto mask = inst.funct3 == kCSRRC ? state.regs[inst.rs1] : inst.rs1;
+      auto mask = inst.funct3 == kCSRRC ? state.regs(inst.rs1) : inst.rs1;
       // atomic read and clear bits
-      auto val = state.csr.ReadData(inst.imm);
-      state.regs[inst.rd] = val;
+      auto val = state.csr().ReadData(inst.imm);
+      state.regs(inst.rd) = val;
       if (inst.rs1) {
-        state.csr.WriteData(inst.imm, val & ~mask);
+        state.csr().WriteData(inst.imm, val & ~mask);
       }
       break;
     }

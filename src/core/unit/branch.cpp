@@ -12,7 +12,7 @@
       state.RaiseException(kExcInstAddrMisalign, target); \
     }                                                     \
     else {                                                \
-      state.pc = target;                                  \
+      state.pc() = target;                                \
     }                                                     \
   } while (0)
 
@@ -23,13 +23,13 @@ void BranchUnit::ExecuteR(const InstR &inst, CoreState &state) {
 void BranchUnit::ExecuteI(const InstI &inst, CoreState &state) {
   // get target address
   auto offset = inst.imm & 0x800 ? 0xfffff000 | inst.imm : inst.imm;
-  auto target = (state.regs[inst.rs1] + offset) & ~0b1;
+  auto target = (state.regs(inst.rs1) + offset) & ~0b1;
   if (target & 0b11) {
     state.RaiseException(kExcInstAddrMisalign, target);
   }
   // perform 'JALR'
-  state.regs[inst.rd] = state.pc + 4;
-  state.pc = target;
+  state.regs(inst.rd) = state.pc() + 4;
+  state.pc() = target;
 }
 
 void BranchUnit::ExecuteS(const InstS &inst, CoreState &state) {
@@ -41,9 +41,9 @@ void BranchUnit::ExecuteS(const InstS &inst, CoreState &state) {
   auto offset = (ofs3 << 12) | (ofs2 << 5) | (ofs1 << 1) | (ofs0 << 11);
   offset = offset & (1 << 12) ? 0xffffe000 | offset : offset;
   // get target address
-  auto target = state.pc + offset;
+  auto target = state.pc() + offset;
   // get src1 & src2
-  const auto &src1 = state.regs[inst.rs1], &src2 = state.regs[inst.rs2];
+  const auto &src1 = state.regs(inst.rs1), &src2 = state.regs(inst.rs2);
   std::int32_t src1s = src1, src2s = src2;
   // 'BRANCH' instructions
   switch (inst.funct3) {
@@ -93,11 +93,11 @@ void BranchUnit::ExecuteU(const InstU &inst, CoreState &state) {
   auto offset = (ofs3 << 20) | (ofs2 << 1) | (ofs1 << 11) | (ofs0 << 12);
   offset = offset & (1 << 20) ? 0xffe00000 | offset : offset;
   // get target address
-  auto target = state.pc + offset;
+  auto target = state.pc() + offset;
   if (target & 0b11) {
     state.RaiseException(kExcInstAddrMisalign, target);
   }
   // perform 'JAL'
-  state.regs[inst.rd] = state.pc + 4;
-  state.pc = target;
+  state.regs(inst.rd) = state.pc() + 4;
+  state.pc() = target;
 }

@@ -16,21 +16,70 @@ inline std::uint32_t GetAddr(std::uint32_t base, std::uint32_t offset12) {
 }  // namespace
 
 void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
-  // AMO
-  // TODO: implementation required
-  assert(false);
+  // 'AMO' instructions
+  switch (inst.funct7 & 0b1111100) {
+    case kLR: {
+      //
+      break;
+    }
+    case kSC: {
+      //
+      break;
+    }
+    case kAMOSWAP: {
+      //
+      break;
+    }
+    case kAMOADD: {
+      //
+      break;
+    }
+    case kAMOXOR: {
+      //
+      break;
+    }
+    case kAMOAND: {
+      //
+      break;
+    }
+    case kAMOOR: {
+      //
+      break;
+    }
+    case kAMOMIN: {
+      //
+      break;
+    }
+    case kAMOMAX: {
+      //
+      break;
+    }
+    case kAMOMINU: {
+      //
+      break;
+    }
+    case kAMOMAXU: {
+      //
+      break;
+    }
+    default: {
+      // illegal 'funct7' (actual 'funct5') field
+      state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
+      break;
+    }
+  }
 }
 
 void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
   if (inst.opcode == kLoad) {
     // get effective address
-    auto addr = GetAddr(state.regs[inst.rs1], inst.imm);
+    auto addr = GetAddr(state.regs(inst.rs1), inst.imm);
     // 'LOAD' instructions
     switch (inst.funct3) {
       case kLB: {
         // load signed byte
-        std::int8_t data = state.bus.ReadByte(addr);
-        state.regs[inst.rd] = data;
+        std::int8_t data = state.bus().ReadByte(addr);
+        state.regs(inst.rd) = data;
         break;
       }
       case kLH: {
@@ -40,8 +89,8 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
-          std::int16_t data = state.bus.ReadHalf(addr);
-          state.regs[inst.rd] = data;
+          std::int16_t data = state.bus().ReadHalf(addr);
+          state.regs(inst.rd) = data;
         }
         break;
       }
@@ -52,13 +101,13 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
-          state.regs[inst.rd] = state.bus.ReadWord(addr);
+          state.regs(inst.rd) = state.bus().ReadWord(addr);
         }
         break;
       }
       case kLBU: {
         // load unsigned byte
-        state.regs[inst.rd] = state.bus.ReadByte(addr);
+        state.regs(inst.rd) = state.bus().ReadByte(addr);
         break;
       }
       case kLHU: {
@@ -68,7 +117,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
-          state.regs[inst.rd] = state.bus.ReadHalf(addr);
+          state.regs(inst.rd) = state.bus().ReadHalf(addr);
         }
         break;
       }
@@ -101,12 +150,12 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
 
 void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
   // get effective address
-  auto addr = GetAddr(state.regs[inst.rs1], (inst.imm7 << 5) | inst.imm5);
+  auto addr = GetAddr(state.regs(inst.rs1), (inst.imm7 << 5) | inst.imm5);
   // perform 'STORE'
   switch (inst.funct3) {
     case kSB: {
       // store byte
-      state.bus.WriteByte(addr, state.regs[inst.rs2]);
+      state.bus().WriteByte(addr, state.regs(inst.rs2));
     }
     case kSH: {
       // store half word
@@ -115,7 +164,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
         state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {
-        state.bus.WriteHalf(addr, state.regs[inst.rs2]);
+        state.bus().WriteHalf(addr, state.regs(inst.rs2));
       }
       break;
     }
@@ -126,7 +175,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
         state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {
-        state.bus.WriteWord(addr, state.regs[inst.rs2]);
+        state.bus().WriteWord(addr, state.regs(inst.rs2));
       }
       break;
     }

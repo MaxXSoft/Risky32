@@ -91,14 +91,14 @@ std::uint32_t PerformIntOp(std::uint32_t opr1, std::uint32_t opr2,
 void IntUnit::ExecuteR(const InstR &inst, CoreState &state) {
   // get operands
   std::uint32_t opr1, opr2;
-  opr1 = state.regs[inst.rs1];
+  opr1 = state.regs(inst.rs1);
   if (inst.opcode == kOpImm) {
     // 'SLLI', 'SRLI'
     assert(inst.funct3 == kSRXI);
     opr2 = inst.rs2;
   }
   else {
-    opr2 = state.regs[inst.rs2];
+    opr2 = state.regs(inst.rs2);
   }
   // check 'funct7' field
   if (inst.funct7 != kRV32I1 && inst.funct7 != kRV32I2 &&
@@ -107,17 +107,17 @@ void IntUnit::ExecuteR(const InstR &inst, CoreState &state) {
     state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
   }
   // calculate
-  state.regs[inst.rd] = PerformIntOp(opr1, opr2, inst.funct3, inst.funct7);
+  state.regs(inst.rd) = PerformIntOp(opr1, opr2, inst.funct3, inst.funct7);
 }
 
 void IntUnit::ExecuteI(const InstI &inst, CoreState &state) {
   assert(inst.funct3 != kSRXI);
   // get operands
-  auto opr1 = state.regs[inst.rs1];
+  auto opr1 = state.regs(inst.rs1);
   // sign-extended
   auto opr2 = inst.imm & 0x800 ? 0xfffff000 | inst.imm : inst.imm;
   // calculate
-  state.regs[inst.rd] = PerformIntOp(opr1, opr2, inst.funct3, kRV32I1);
+  state.regs(inst.rd) = PerformIntOp(opr1, opr2, inst.funct3, kRV32I1);
 }
 
 void IntUnit::ExecuteS(const InstS &inst, CoreState &state) {
@@ -127,11 +127,11 @@ void IntUnit::ExecuteS(const InstS &inst, CoreState &state) {
 void IntUnit::ExecuteU(const InstU &inst, CoreState &state) {
   if (inst.opcode == kAUIPC) {
     // 'AUIPC'
-    state.regs[inst.rd] = state.pc + (inst.imm << 12);
+    state.regs(inst.rd) = state.pc() + (inst.imm << 12);
   }
   else if (inst.opcode == kLUI) {
     // 'LUI'
-    state.regs[inst.rd] = inst.imm << 12;
+    state.regs(inst.rd) = inst.imm << 12;
   }
   else {
     state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
