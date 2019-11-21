@@ -12,7 +12,7 @@
 
 class Core {
  public:
-  Core(Bus &bus) : state_(bus, csr_) { InitUnits(); }
+  Core(Bus &bus) : bus_(bus), state_(*this) { InitUnits(); }
 
   // reset the state of current core
   void Reset();
@@ -20,21 +20,26 @@ class Core {
   void NextCycle();
 
   // getters
+  // bus
+  Bus &bus() { return bus_; }
+  // control and status registers
+  CSR &csr() { return csr_; }
   // value of specific register
-  std::uint32_t reg(std::size_t addr) { state_.regs[addr]; }
+  std::uint32_t reg(std::size_t addr) { state_.regs(addr); }
   // value of program counter
-  std::uint32_t pc() { return state_.pc; }
+  std::uint32_t pc() { return state_.pc(); }
 
  private:
   // initialize all functional units
   void InitUnits();
 
+  Bus &bus_;
+  // CSR
+  CSR csr_;
   // internal state
   CoreState state_;
   // functional units
   std::unordered_map<std::uint32_t, UnitPtr> units_;
-  // CSR
-  CSR csr_;
 };
 
 #endif  // RISKY32_CORE_CORE_H_

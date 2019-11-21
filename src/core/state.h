@@ -7,8 +7,12 @@
 #include "bus/bus.h"
 #include "core/csr.h"
 
-struct CoreState {
-  CoreState(Bus &bus, CSR &csr) : bus(bus), csr(csr) {}
+// forward declaration of 'Core'
+class Core;
+
+class CoreState {
+public:
+  CoreState(Core &core) : core_(core) {}
 
   // copy operator
   CoreState &operator=(const CoreState &rhs) {
@@ -25,14 +29,23 @@ struct CoreState {
   // return from trap in specific mode (U, S or M)
   void ReturnFromTrap(std::uint32_t mode);
 
-  // system bus
-  Bus &bus;
+  // getters
+  // bus
+  Bus &bus();
   // CSR
-  CSR &csr;
+  CSR &csr();
   // registers
-  std::uint32_t regs[32];
+  std::uint32_t &regs(std::uint32_t addr) { return regs_[addr]; }
   // program counter
-  std::uint32_t pc;
+  std::uint32_t &pc() { return pc_; }
+
+private:
+  // reference of core
+  Core &core_;
+  // registers
+  std::uint32_t regs_[32];
+  // program counter
+  std::uint32_t pc_;
 };
 
 #endif  // RISKY32_CORE_STATE_H_
