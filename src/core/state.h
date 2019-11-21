@@ -38,6 +38,8 @@ public:
   std::uint32_t &regs(std::uint32_t addr) { return regs_[addr]; }
   // program counter
   std::uint32_t &pc() { return pc_; }
+  // next program counter
+  std::uint32_t &next_pc() { return next_pc_; }
 
 private:
   // reference of core
@@ -45,7 +47,7 @@ private:
   // registers
   std::uint32_t regs_[32];
   // program counter
-  std::uint32_t pc_;
+  std::uint32_t pc_, next_pc_;
 };
 
 #endif  // RISKY32_CORE_STATE_H_
