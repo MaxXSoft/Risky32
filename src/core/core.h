@@ -8,6 +8,7 @@
 #include "bus/bus.h"
 #include "core/storage/state.h"
 #include "core/storage/csr.h"
+#include "core/storage/excmon.h"
 #include "core/unit.h"
 
 class Core {
@@ -24,6 +25,8 @@ class Core {
   Bus &bus() { return bus_; }
   // control and status registers
   CSR &csr() { return csr_; }
+  // exclusive monitor
+  ExclusiveMonitor &exc_mon() { return exc_mon_; }
   // value of specific register
   std::uint32_t reg(std::size_t addr) { state_.regs(addr); }
   // value of program counter
@@ -37,6 +40,8 @@ class Core {
   Bus &bus_;
   // CSR
   CSR csr_;
+  // exclusive monitor ('LR' & 'SC')
+  ExclusiveMonitor exc_mon_;
   // internal state
   CoreState state_;
   // functional units

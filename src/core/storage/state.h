@@ -6,13 +6,14 @@
 
 #include "bus/bus.h"
 #include "core/storage/csr.h"
+#include "core/storage/excmon.h"
 
 // forward declaration of 'Core'
 class Core;
 
 // core internal state
 class CoreState {
-public:
+ public:
   CoreState(Core &core) : core_(core) {}
 
   // copy operator
@@ -35,6 +36,8 @@ public:
   Bus &bus();
   // CSR
   CSR &csr();
+  // exclusive monitor
+  ExclusiveMonitor &exc_mon();
   // registers
   std::uint32_t &regs(std::uint32_t addr) { return regs_[addr]; }
   // program counter
@@ -42,7 +45,7 @@ public:
   // next program counter
   std::uint32_t &next_pc() { return next_pc_; }
 
-private:
+ private:
   // reference of core
   Core &core_;
   // registers
