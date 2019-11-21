@@ -5,16 +5,18 @@
 #include "define/exception.h"
 #include "util/cast.h"
 
-// helper macro for 'BRANCH' instructions
-#define DO_BRANCH(target, state)                          \
-  do {                                                    \
-    if (target & 0b11) {                                  \
-      state.RaiseException(kExcInstAddrMisalign, target); \
-    }                                                     \
-    else {                                                \
-      state.next_pc() = target;                           \
-    }                                                     \
-  } while (0)
+namespace {
+
+inline void PerformBranch(std::uint32_t target, CoreState &state) {
+  if (target & 0b11) {
+    state.RaiseException(kExcInstAddrMisalign, target);
+  }
+  else {
+    state.next_pc() = target;
+  }
+}
+
+}  // namespace
 
 void BranchUnit::ExecuteR(const InstR &inst, CoreState &state) {
   assert(false);
@@ -49,31 +51,31 @@ void BranchUnit::ExecuteS(const InstS &inst, CoreState &state) {
   switch (inst.funct3) {
     case kBEQ: {
       // branch if equal
-      if (src1 == src2) DO_BRANCH(target, state);
+      if (src1 == src2) PerformBranch(target, state);
       break;
     }
     case kBNE: {
       // branch if unqeual
-      if (src1 != src2) DO_BRANCH(target, state);
+      if (src1 != src2) PerformBranch(target, state);
       break;
     }
     case kBLT: {
       // branch if less than (signed)
-      if (src1s < src2s) DO_BRANCH(target, state);
+      if (src1s < src2s) PerformBranch(target, state);
       break;
     }
     case kBGE: {
       // branch if greater than or equal (signed)
-      if (src1s >= src2s) DO_BRANCH(target, state);
+      if (src1s >= src2s) PerformBranch(target, state);
     }
     case kBLTU: {
       // branch if less than (unsigned)
-      if (src1 < src2) DO_BRANCH(target, state);
+      if (src1 < src2) PerformBranch(target, state);
       break;
     }
     case kBGEU: {
       // branch if greater than or equal (unsigned)
-      if (src1 >= src2) DO_BRANCH(target, state);
+      if (src1 >= src2) PerformBranch(target, state);
       break;
     }
     default: {
