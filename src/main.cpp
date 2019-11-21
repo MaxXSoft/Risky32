@@ -1,3 +1,6 @@
+#include <iostream>
+#include <cstring>
+
 #include "core/core.h"
 #include "bus/bus.h"
 #include "peripheral/general/gpio.h"
@@ -5,18 +8,42 @@
 #include "peripheral/storage/rom.h"
 
 #include "define/exception.h"
+#include "version.h"
 
 using namespace std;
 
+namespace {
+
+void PrintVersion() {
+  cout << APP_NAME << " version " << APP_VERSION << endl;
+  cout << "A simple RISC-V simulator written in C++." << endl;
+  cout << endl;
+  cout << "Copyright (C) 2010-2019 MaxXing, MaxXSoft. License GPLv3.";
+  cout << endl;
+}
+
+}  // namespace
+
 int main(int argc, const char *argv[]) {
-  // check argument count
-  if (argc < 2) return 1;
+  // check argument
+  if (argc < 2) {
+    cerr << "error: invalid argument" << endl;
+    cerr << "usage: " << argv[0] << " [-v] binary" << endl;
+    return 1;
+  }
+  else if (!strcmp(argv[1], "-v")) {
+    PrintVersion();
+    return 0;
+  }
 
   // create peripherals
   auto rom = std::make_shared<ROM>();
   auto ram = std::make_shared<RAM>(65536);
   auto gpio = std::make_shared<GPIO>();
-  if (!rom->LoadBinary(argv[1])) return 1;
+  if (!rom->LoadBinary(argv[1])) {
+    cerr << "error: failed to load file '" << argv[1] << "'" << endl;
+    return 1;
+  }
 
   // initialize system bus
   Bus bus;
