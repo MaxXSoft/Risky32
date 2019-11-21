@@ -6,9 +6,9 @@
 #include <cstddef>
 
 #include "bus/bus.h"
-#include "core/state.h"
+#include "core/storage/state.h"
+#include "core/storage/csr.h"
 #include "core/unit.h"
-#include "core/csr.h"
 
 class Core {
  public:
@@ -33,6 +33,7 @@ class Core {
   // initialize all functional units
   void InitUnits();
 
+  // bus
   Bus &bus_;
   // CSR
   CSR csr_;

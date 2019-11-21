@@ -1,9 +1,10 @@
-#ifndef RISKY32_CORE_CSR_H_
-#define RISKY32_CORE_CSR_H_
+#ifndef RISKY32_CORE_STORAGE_CSR_H_
+#define RISKY32_CORE_STORAGE_CSR_H_
 
 #include <unordered_map>
 #include <cstdint>
 
+// control and status registers
 class CSR {
  public:
   CSR();
@@ -26,4 +27,4 @@ class CSR {
   std::uint32_t *mtvec_, *mepc_;
 };
 
-#endif  // RISKY32_CORE_CSR_H_
+#endif  // RISKY32_CORE_STORAGE_CSR_H_

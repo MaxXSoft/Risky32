@@ -1,15 +1,16 @@
-#ifndef RISKY32_CORE_STATE_H_
-#define RISKY32_CORE_STATE_H_
+#ifndef RISKY32_CORE_STORAGE_STATE_H_
+#define RISKY32_CORE_STORAGE_STATE_H_
 
 #include <cstdint>
 #include <cstdlib>
 
 #include "bus/bus.h"
-#include "core/csr.h"
+#include "core/storage/csr.h"
 
 // forward declaration of 'Core'
 class Core;
 
+// core internal state
 class CoreState {
 public:
   CoreState(Core &core) : core_(core) {}
@@ -50,4 +51,4 @@ private:
   std::uint32_t pc_, next_pc_;
 };
 
-#endif  // RISKY32_CORE_STATE_H_
+#endif  // RISKY32_CORE_STORAGE_STATE_H_

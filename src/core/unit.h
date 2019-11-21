@@ -5,7 +5,7 @@
 #include <cstdint>
 
 #include "define/inst.h"
-#include "core/state.h"
+#include "core/storage/state.h"
 
 class UnitInterface {
  public:
