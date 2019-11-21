@@ -12,7 +12,7 @@
       state.RaiseException(kExcInstAddrMisalign, target); \
     }                                                     \
     else {                                                \
-      state.pc() = target;                                \
+      state.next_pc() = target;                           \
     }                                                     \
   } while (0)
 
@@ -29,7 +29,7 @@ void BranchUnit::ExecuteI(const InstI &inst, CoreState &state) {
   }
   // perform 'JALR'
   state.regs(inst.rd) = state.pc() + 4;
-  state.pc() = target;
+  state.next_pc() = target;
 }
 
 void BranchUnit::ExecuteS(const InstS &inst, CoreState &state) {
@@ -99,5 +99,5 @@ void BranchUnit::ExecuteU(const InstU &inst, CoreState &state) {
   }
   // perform 'JAL'
   state.regs(inst.rd) = state.pc() + 4;
-  state.pc() = target;
+  state.next_pc() = target;
 }

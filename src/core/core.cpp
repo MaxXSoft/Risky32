@@ -43,6 +43,7 @@ void Core::NextCycle() {
   // fetch instruction
   auto inst_data = state_.bus().ReadWord(state_.pc());
   auto state = state_;
+  state.next_pc() = state.pc() + 4;
   // select functional unit
   auto inst = reinterpret_cast<Inst *>(&inst_data);
   auto it = units_.find(inst->opcode);
@@ -107,5 +108,5 @@ void Core::NextCycle() {
   state_ = state;
   // prepare for next cycle
   state_.regs(0) = 0;
-  state_.pc() += 4;
+  state_.pc() = state_.next_pc();
 }
