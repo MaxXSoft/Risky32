@@ -13,53 +13,147 @@ inline std::uint32_t GetAddr(std::uint32_t base, std::uint32_t offset12) {
   return base + offset;
 }
 
+// check if no address exception (for 'AMO' instructions)
+inline bool CheckNoAddrExc(std::uint32_t addr, CoreState &state) {
+  if (addr & 0b11) {
+    state.RaiseException(kExcStAMOAddrMisalign, addr);
+    return false;
+  }
+  return true;
+}
+
+inline std::int32_t Min(std::int32_t lhs, std::int32_t rhs) {
+  return lhs < rhs ? lhs : rhs;
+}
+
+inline std::int32_t Max(std::int32_t lhs, std::int32_t rhs) {
+  return lhs > rhs ? lhs : rhs;
+}
+
+inline std::uint32_t MinU(std::uint32_t lhs, std::uint32_t rhs) {
+  return lhs < rhs ? lhs : rhs;
+}
+
+inline std::uint32_t MaxU(std::uint32_t lhs, std::uint32_t rhs) {
+  return lhs > rhs ? lhs : rhs;
+}
+
 }  // namespace
 
 void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
+  // get address
+  auto addr = state.regs(inst.rs1);
   // 'AMO' instructions
+  // ignore all ordering bits
   switch (inst.funct7 & 0b1111100) {
     case kLR: {
-      //
+      // check exceptions
+      if (inst.rs2) {
+        // invalid 'rs2' field
+        state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
+      }
+      else if (CheckNoAddrExc(addr, state)) {
+        // set flag & load data
+        state.exc_mon().SetFlag(addr);
+        state.regs(inst.rd) = state.bus().ReadWord(addr);
+      }
       break;
     }
     case kSC: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        if (state.exc_mon().CheckFlag(addr)) {
+          // success
+          state.bus().WriteWord(addr, state.regs(inst.rs2));
+          state.regs(inst.rd) = 0;
+        }
+        else {
+          // failure
+          state.regs(inst.rd) = 1;
+        }
+        // clear flag
+        state.exc_mon().ClearFlag();
+      }
       break;
     }
     case kAMOSWAP: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = state.regs(inst.rs2);
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOADD: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = data + state.regs(inst.rs2);
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOXOR: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = data ^ state.regs(inst.rs2);
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOAND: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = data & state.regs(inst.rs2);
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOOR: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = data | state.regs(inst.rs2);
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOMIN: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = Min(data, state.regs(inst.rs2));
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOMAX: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = Max(data, state.regs(inst.rs2));
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOMINU: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = MinU(data, state.regs(inst.rs2));
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     case kAMOMAXU: {
-      //
+      if (CheckNoAddrExc(addr, state)) {
+        auto data = state.bus().ReadWord(addr);
+        state.regs(inst.rd) = data;
+        auto result = MaxU(data, state.regs(inst.rs2));
+        state.bus().WriteWord(addr, result);
+      }
       break;
     }
     default: {
