@@ -15,7 +15,7 @@ inline std::uint8_t HexConvert(char c) {
 
 }  // namespace
 
-bool ROM::LoadBinary(const std::string &file) {
+bool ROM::LoadBinary(std::string_view file) {
   // open file
   std::ifstream ifs(file, std::ios::binary);
   if (!ifs.is_open()) return false;
@@ -31,7 +31,7 @@ bool ROM::LoadBinary(const std::string &file) {
   return true;
 }
 
-bool ROM::LoadHex(const std::string &file) {
+bool ROM::LoadHex(std::string_view file) {
   // open file
   std::ifstream ifs(file);
   if (!ifs.is_open()) return false;
