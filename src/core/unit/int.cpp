@@ -12,7 +12,6 @@ std::uint32_t PerformIntOp(std::uint32_t opr1, std::uint32_t opr2,
   if (funct7 == kRV32M) {
     // signed operands
     std::int32_t opr1s = opr1, opr2s = opr2;
-    std::uint64_t ans;
     // multiplication & division
     switch (funct3) {
       case kMUL: return (static_cast<std::int64_t>(opr1s) *
