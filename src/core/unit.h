@@ -7,9 +7,9 @@
 #include "define/inst.h"
 #include "core/state.h"
 
-class UnitBase {
+class UnitInterface {
  public:
-  virtual ~UnitBase() = default;
+  virtual ~UnitInterface() = default;
 
   // execute a R-type instruction
   virtual void ExecuteR(const InstR &inst, CoreState &state) = 0;
@@ -21,6 +21,6 @@ class UnitBase {
   virtual void ExecuteU(const InstU &inst, CoreState &state) = 0;
 };
 
-using UnitPtr = std::shared_ptr<UnitBase>;
+using UnitPtr = std::shared_ptr<UnitInterface>;
 
 #endif  // RISKY32_CORE_UNIT_UNIT_H_

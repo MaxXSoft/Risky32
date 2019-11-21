@@ -3,7 +3,7 @@
 
 #include "core/unit.h"
 
-class IntUnit : public UnitBase {
+class IntUnit : public UnitInterface {
  public:
   void ExecuteR(const InstR &inst, CoreState &state) override;
   void ExecuteI(const InstI &inst, CoreState &state) override;
