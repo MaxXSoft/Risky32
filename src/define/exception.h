@@ -11,8 +11,9 @@ NOTE:
 
 */
 
-// reset vector of all harts
-constexpr std::uint32_t kResetVector          = 0x00001000;
+// reset vectors of all harts
+constexpr std::uint32_t kTrapVector           = 0x00000100;
+constexpr std::uint32_t kResetVector          = 0x00000200;
 
 // exception code
 constexpr std::uint32_t kExcMSoftInt          = 3;
