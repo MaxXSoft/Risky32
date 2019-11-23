@@ -51,7 +51,7 @@ std::uint8_t ROM::ReadByte(std::uint32_t addr) {
 }
 
 void ROM::WriteByte(std::uint32_t addr, std::uint8_t value) {
-  // write word in ROM is not allowed
+  // write byte in ROM is not allowed
   assert(false);
 }
 
@@ -62,7 +62,7 @@ std::uint16_t ROM::ReadHalf(std::uint32_t addr) {
 }
 
 void ROM::WriteHalf(std::uint32_t addr, std::uint16_t value) {
-  // write word in ROM is not allowed
+  // write half word in ROM is not allowed
   assert(false);
 }
 
