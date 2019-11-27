@@ -8,7 +8,7 @@
 
 namespace {
 
-void PerformPrivileged(const InstI &inst, CoreState &state) {
+bool PerformPrivileged(const InstI &inst, CoreState &state) {
   switch (inst.imm) {
     case kECALL: {
       // environment call
@@ -22,7 +22,7 @@ void PerformPrivileged(const InstI &inst, CoreState &state) {
     }
     case kMRET: {
       // return from trap in machine mode
-      state.ReturnFromTrap(kPrivLevelM);
+      if (!state.ReturnFromTrap(kPrivLevelM)) return false;
       break;
     }
     case kWFI: {
@@ -32,10 +32,66 @@ void PerformPrivileged(const InstI &inst, CoreState &state) {
     }
     default: {
       // invalid 'imm' field
-      state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
-      break;
+      return false;
     }
   }
+  return true;
+}
+
+bool PerformSystem(const InstI &inst, CoreState &state) {
+  // 'SYSTEM' instructions
+  switch (inst.funct3) {
+    case kPRIV: {
+      // privileged instructions
+      if (inst.rs1 || inst.rd) {
+        return false;
+      }
+      else {
+        return PerformPrivileged(inst, state);
+      }
+      break;
+    }
+    case kCSRRW: case kCSRRWI: {
+      bool success = false;
+      auto val = inst.funct3 == kCSRRW ? state.regs(inst.rs1) : inst.rs1;
+      // atomic read/write
+      if (inst.rd) {
+        if (!state.csr().ReadData(inst.imm, state.regs(inst.rd))) {
+          // invalid CSR read
+          return false;
+        }
+      }
+      if (!state.csr().WriteData(inst.imm, val)) return false;
+      break;
+    }
+    case kCSRRS: case kCSRRSI: {
+      std::uint32_t val;
+      auto mask = inst.funct3 == kCSRRS ? state.regs(inst.rs1) : inst.rs1;
+      // atomic read and set bits
+      if (!state.csr().ReadData(inst.imm, val)) return false;
+      state.regs(inst.rd) = val;
+      if (inst.rs1) {
+        if (!state.csr().WriteData(inst.imm, val | mask)) return false;
+      }
+      break;
+    }
+    case kCSRRC: case kCSRRCI: {
+      std::uint32_t val;
+      auto mask = inst.funct3 == kCSRRC ? state.regs(inst.rs1) : inst.rs1;
+      // atomic read and clear bits
+      if (!state.csr().ReadData(inst.imm, val)) return false;
+      state.regs(inst.rd) = val;
+      if (inst.rs1) {
+        if (!state.csr().WriteData(inst.imm, val & ~mask)) return false;
+      }
+      break;
+    }
+    default: {
+      // invalid 'funct3' field
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace
@@ -45,52 +101,9 @@ void SystemUnit::ExecuteR(const InstR &inst, CoreState &state) {
 }
 
 void SystemUnit::ExecuteI(const InstI &inst, CoreState &state) {
-  // 'SYSTEM' instructions
-  switch (inst.funct3) {
-    case kPRIV: {
-      // privileged instructions
-      if (inst.rs1 || inst.rd) {
-        state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
-      }
-      else {
-        PerformPrivileged(inst, state);
-      }
-      break;
-    }
-    case kCSRRW: case kCSRRWI: {
-      auto val = inst.funct3 == kCSRRW ? state.regs(inst.rs1) : inst.rs1;
-      // atomic read/write
-      if (inst.rd) {
-        state.regs(inst.rd) = state.csr().ReadData(inst.imm);
-      }
-      state.csr().WriteData(inst.imm, val);
-      break;
-    }
-    case kCSRRS: case kCSRRSI: {
-      auto mask = inst.funct3 == kCSRRS ? state.regs(inst.rs1) : inst.rs1;
-      // atomic read and set bits
-      auto val = state.csr().ReadData(inst.imm);
-      state.regs(inst.rd) = val;
-      if (inst.rs1) {
-        state.csr().WriteData(inst.imm, val | mask);
-      }
-      break;
-    }
-    case kCSRRC: case kCSRRCI: {
-      auto mask = inst.funct3 == kCSRRC ? state.regs(inst.rs1) : inst.rs1;
-      // atomic read and clear bits
-      auto val = state.csr().ReadData(inst.imm);
-      state.regs(inst.rd) = val;
-      if (inst.rs1) {
-        state.csr().WriteData(inst.imm, val & ~mask);
-      }
-      break;
-    }
-    default: {
-      // invalid 'funct3' field
-      state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
-      break;
-    }
+  if (!PerformSystem(inst, state)) {
+    // illegal instruction
+    state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
   }
 }
 
