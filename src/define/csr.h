@@ -3,6 +3,17 @@
 
 #include <cstdint>
 
+/*
+
+NOTE:
+
+1. memory mapped CSRs:
+      mtime, mtimecmp, msip (implemented in CLINT)
+
+2. subsets of M-mode:
+      sstatus, sip, sie
+
+*/
 
 // supervisor status register
 struct SStatus {
