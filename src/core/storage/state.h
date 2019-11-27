@@ -24,12 +24,20 @@ class CoreState {
     return *this;
   }
 
+  // reset state
+  void Reset();
+  // clear exception flag, returns true if there is an exception
+  bool CheckAndClearExcFlag();
+
+  // check external interrupt
+  void CheckInterrupt();
   // raise an exception
   void RaiseException(std::uint32_t exc_code);
   // raise an exception (with trap value required by some exceptions)
   void RaiseException(std::uint32_t exc_code, std::uint32_t trap_val);
   // return from trap in specific mode (U, S or M)
-  void ReturnFromTrap(std::uint32_t mode);
+  // returns false if is illegal
+  bool ReturnFromTrap(std::uint32_t mode);
 
   // getters
   // bus
@@ -52,6 +60,8 @@ class CoreState {
   std::uint32_t regs_[32];
   // program counter
   std::uint32_t pc_, next_pc_;
+  // exception code (zero if no exception)
+  std::uint32_t exc_code_;
 };
 
 #endif  // RISKY32_CORE_STORAGE_STATE_H_
