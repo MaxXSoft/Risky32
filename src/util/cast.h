@@ -12,22 +12,22 @@ template <> struct IntPtrType<32> { using Type = std::uint32_t; };
 template <> struct IntPtrType<64> { using Type = std::uint64_t; };
 
 template <std::size_t N, typename T>
-typename IntPtrType<N>::Type *IntPtrCast(T *ptr) {
+inline typename IntPtrType<N>::Type *IntPtrCast(T *ptr) {
   return reinterpret_cast<typename IntPtrType<N>::Type *>(ptr);
 }
 
 template <std::size_t N, typename T>
-const typename IntPtrType<N>::Type *IntPtrCast(const T *ptr) {
+inline const typename IntPtrType<N>::Type *IntPtrCast(const T *ptr) {
   return reinterpret_cast<const typename IntPtrType<N>::Type *>(ptr);
 }
 
 template <typename T, typename U>
-T *PtrCast(U *ptr) {
+inline T *PtrCast(U *ptr) {
   return reinterpret_cast<T *>(ptr);
 }
 
 template <typename T, typename U>
-const T *PtrCast(const U *ptr) {
+inline const T *PtrCast(const U *ptr) {
   return reinterpret_cast<const T *>(ptr);
 }
 
