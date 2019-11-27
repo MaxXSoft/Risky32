@@ -20,6 +20,11 @@ bool PerformPrivileged(const InstI &inst, CoreState &state) {
       state.RaiseException(kExcBreakpoint);
       break;
     }
+    case kSRET: {
+      // return from trap in supervisor mode
+      if (!state.ReturnFromTrap(kPrivLevelS)) return false;
+      break;
+    }
     case kMRET: {
       // return from trap in machine mode
       if (!state.ReturnFromTrap(kPrivLevelM)) return false;
@@ -97,7 +102,14 @@ bool PerformSystem(const InstI &inst, CoreState &state) {
 }  // namespace
 
 void SystemUnit::ExecuteR(const InstR &inst, CoreState &state) {
-  assert(false);
+  if (inst.funct3 == kPRIV && inst.funct7 == kSFENCE && !inst.rd) {
+    // 'SFENCE.VMA' instruction
+    // do nothing because there is no TLB
+  }
+  else {
+    // illegal privileged instruction
+    state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
+  }
 }
 
 void SystemUnit::ExecuteI(const InstI &inst, CoreState &state) {
