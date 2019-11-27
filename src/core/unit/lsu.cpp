@@ -179,7 +179,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
       case kLH: {
         // load signed half word
         if (addr & 0b1) {
-          // misalligned address
+          // misaligned address
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
@@ -191,7 +191,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
       case kLW: {
         // load word
         if (addr & 0b11) {
-          // misalligned address
+          // misaligned address
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
@@ -207,7 +207,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
       case kLHU: {
         // load unsigned half word
         if (addr & 0b1) {
-          // misalligned address
+          // misaligned address
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
@@ -254,7 +254,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
     case kSH: {
       // store half word
       if (addr & 0b1) {
-        // misalligned address
+        // misaligned address
         state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {
@@ -265,7 +265,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
     case kSW: {
       // store word
       if (addr & 0b11) {
-        // misalligned address
+        // misaligned address
         state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {

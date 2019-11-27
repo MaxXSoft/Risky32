@@ -105,7 +105,7 @@ bool CSR::WriteData(std::uint32_t addr, std::uint32_t value) {
   else {
     // TODO: with bit mask
     // TODO: handle side effects
-    // TODO: write to epc and then misalligned?
+    // TODO: write to epc and then misaligned?
     // TODO: sync mstatus & sstatus
     // reset hardwired CSR/bits
     zero_ = 0;
