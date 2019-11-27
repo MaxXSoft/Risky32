@@ -33,10 +33,7 @@ void Core::InitUnits() {
 }
 
 void Core::Reset() {
-  for (int i = 0; i < 32; ++i) {
-    state_.regs(i) = 0;
-  }
-  state_.pc() = kResetVector;
+  state_.Reset();
 }
 
 void Core::NextCycle() {
@@ -103,10 +100,14 @@ void Core::NextCycle() {
       }
     }
   }
-  // handle exception
-  // TODO
-  state_ = state;
+  // handle interrupt & exception
+  state_.CheckInterrupt();
+  if (!state_.CheckAndClearExcFlag()) {
+    // write back
+    state_ = state;
+  }
   // prepare for next cycle
   state_.regs(0) = 0;
-  state_.pc() = state_.next_pc();
+  state_.pc() = state.next_pc();
+  csr_.UpdateCounter();
 }
