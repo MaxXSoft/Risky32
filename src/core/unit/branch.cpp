@@ -5,19 +5,6 @@
 #include "define/exception.h"
 #include "util/cast.h"
 
-namespace {
-
-inline void PerformBranch(std::uint32_t target, CoreState &state) {
-  if (target & 0b11) {
-    state.RaiseException(kExcInstAddrMisalign, target);
-  }
-  else {
-    state.next_pc() = target;
-  }
-}
-
-}  // namespace
-
 void BranchUnit::ExecuteR(const InstR &inst, CoreState &state) {
   assert(false);
 }
@@ -26,9 +13,6 @@ void BranchUnit::ExecuteI(const InstI &inst, CoreState &state) {
   // get target address
   auto offset = inst.imm & 0x800 ? 0xfffff000 | inst.imm : inst.imm;
   auto target = (state.regs(inst.rs1) + offset) & ~0b1;
-  if (target & 0b11) {
-    state.RaiseException(kExcInstAddrMisalign, target);
-  }
   // perform 'JALR'
   state.regs(inst.rd) = state.pc() + 4;
   state.next_pc() = target;
@@ -51,31 +35,31 @@ void BranchUnit::ExecuteS(const InstS &inst, CoreState &state) {
   switch (inst.funct3) {
     case kBEQ: {
       // branch if equal
-      if (src1 == src2) PerformBranch(target, state);
+      if (src1 == src2) state.next_pc() = target;
       break;
     }
     case kBNE: {
       // branch if unqeual
-      if (src1 != src2) PerformBranch(target, state);
+      if (src1 != src2) state.next_pc() = target;
       break;
     }
     case kBLT: {
       // branch if less than (signed)
-      if (src1s < src2s) PerformBranch(target, state);
+      if (src1s < src2s) state.next_pc() = target;
       break;
     }
     case kBGE: {
       // branch if greater than or equal (signed)
-      if (src1s >= src2s) PerformBranch(target, state);
+      if (src1s >= src2s) state.next_pc() = target;
     }
     case kBLTU: {
       // branch if less than (unsigned)
-      if (src1 < src2) PerformBranch(target, state);
+      if (src1 < src2) state.next_pc() = target;
       break;
     }
     case kBGEU: {
       // branch if greater than or equal (unsigned)
-      if (src1 >= src2) PerformBranch(target, state);
+      if (src1 >= src2) state.next_pc() = target;
       break;
     }
     default: {
@@ -96,9 +80,6 @@ void BranchUnit::ExecuteU(const InstU &inst, CoreState &state) {
   offset = offset & (1 << 20) ? 0xffe00000 | offset : offset;
   // get target address
   auto target = state.pc() + offset;
-  if (target & 0b11) {
-    state.RaiseException(kExcInstAddrMisalign, target);
-  }
   // perform 'JAL'
   state.regs(inst.rd) = state.pc() + 4;
   state.next_pc() = target;
