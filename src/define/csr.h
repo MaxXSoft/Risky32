@@ -12,7 +12,7 @@ struct SStatus {
   std::uint32_t upie  : 1;  // zero (no N extension)
   std::uint32_t spie  : 1;  // zero (no S-mode trap)
   std::uint32_t wpri1 : 2;  // zero
-  std::uint32_t spp   : 1;  // S-mode previous privileged level
+  std::uint32_t spp   : 1;  // S-mode previous privilege level
   std::uint32_t wpri2 : 4;  // zero
   std::uint32_t fs    : 2;  // zero (no FPU)
   std::uint32_t xs    : 2;  // zero (no custom extension)
@@ -40,9 +40,9 @@ struct MStatus {
   std::uint32_t spie  : 1;  // zero (no S-mode trap)
   std::uint32_t wpri1 : 1;  // zero
   std::uint32_t mpie  : 1;  // M-mode previous interrupt enable
-  std::uint32_t spp   : 1;  // S-mode previous privileged level
+  std::uint32_t spp   : 1;  // S-mode previous privilege level
   std::uint32_t wpri2 : 2;  // zero
-  std::uint32_t mpp   : 2;  // M-mode previous privileged level
+  std::uint32_t mpp   : 2;  // M-mode previous privilege level
   std::uint32_t fs    : 2;  // zero (no FPU)
   std::uint32_t xs    : 2;  // zero (no custom extension)
   std::uint32_t mprv  : 1;  // zero (reduce complexity)
