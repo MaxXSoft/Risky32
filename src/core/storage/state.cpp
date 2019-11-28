@@ -1,5 +1,6 @@
 #include "core/storage/state.h"
 
+#include <functional>
 #include <cassert>
 
 #include "core/core.h"
@@ -22,6 +23,22 @@ inline int GetExcPriority(std::uint32_t exc_code) {
   }
 }
 
+template <typename T>
+std::uint32_t UpdateCSR(CSR &csr, std::uint32_t addr,
+                        std::function<std::uint32_t(T &)> callback) {
+  // read CSR data
+  std::uint32_t value;
+  auto ans = csr.ReadData(addr, value);
+  assert(ans);
+  auto data = PtrCast<T>(&value);
+  // update CSR data
+  auto ret = callback(*data);
+  // apply change
+  ans = csr.WriteData(addr, *IntPtrCast<32>(&data));
+  assert(ans);
+  return ret;
+}
+
 }  // namespace
 
 void CoreState::Reset() {
@@ -35,14 +52,16 @@ bool CoreState::CheckAndClearExcFlag() {
     // set machine mode EPC & next pc
     core_.csr().set_mepc(pc_);
     next_pc_ = core_.csr().trap_vec();
-    // update machine mode status CSR
-    auto mstatus_val = core_.csr().mstatus();
-    auto mstatus = PtrCast<MStatus>(&mstatus_val);
-    mstatus->mpie = mstatus->mie;
-    mstatus->mie = 0;
-    mstatus->mpp = core_.csr().cur_priv();
+    // update current privilege level
+    auto priv = core_.csr().cur_priv();
     core_.csr().set_cur_priv(kPrivLevelM);
-    core_.csr().set_mstatus(*IntPtrCast<32>(&mstatus));
+    // update 'mstatus'
+    UpdateCSR<MStatus>(core_.csr(), kCSRMStatus, [priv](MStatus &x) {
+      x.mpie = x.mie;
+      x.mie = 0;
+      x.mpp = priv;
+      return 0;
+    });
     // clear LR/SC flag
     core_.exc_mon().ClearFlag();
     return true;
@@ -77,31 +96,30 @@ bool CoreState::ReturnFromTrap(std::uint32_t mode) {
   if (mode == kPrivLevelM) {
     // return from M-mode
     next_pc_ = core_.csr().mepc();
-    // update machine mode status CSR
-    auto mstatus_val = core_.csr().mstatus();
-    auto mstatus = PtrCast<MStatus>(&mstatus_val);
-    mstatus->mie = mstatus->mpie;
-    mstatus->mpie = 1;
-    core_.csr().set_cur_priv(mstatus->mpp);
-    mstatus->mpp = kPrivLevelU;
-    core_.csr().set_mstatus(*IntPtrCast<32>(&mstatus));
+    // update 'mstatus'
+    auto priv =
+        UpdateCSR<MStatus>(core_.csr(), kCSRMStatus, [](MStatus &x) {
+          x.mie = x.mpie;
+          x.mpie = 1;
+          auto priv = x.mpp;
+          x.mpp = kPrivLevelU;
+          return priv;
+        });
+    // update current privilege level
+    core_.csr().set_cur_priv(priv);
   }
   else if (mode == kPrivLevelS) {
     // return from S-mode
     next_pc_ = core_.csr().mepc();
-    // read sstatus
-    std::uint32_t sstatus_val;
-    auto ret = core_.csr().ReadData(kCSRSStatus, sstatus_val);
-    assert(ret);
-    auto sstatus = PtrCast<SStatus>(&sstatus_val);
-    // update sstatus
-    sstatus->sie = sstatus->spie;
-    sstatus->spie = 1;
-    auto priv = sstatus->spp;
-    sstatus->spp = kPrivLevelU;
-    // apply change
-    ret = core_.csr().WriteData(kCSRSStatus, *IntPtrCast<32>(&sstatus));
-    assert(ret);
+    // update 'sstatus'
+    auto priv =
+        UpdateCSR<SStatus>(core_.csr(), kCSRSStatus, [](SStatus &x) {
+          x.sie = x.spie;
+          x.spie = 1;
+          auto priv = x.spp;
+          x.spp = kPrivLevelU;
+          return priv;
+        });
     // update current privilege level
     core_.csr().set_cur_priv(priv);
   }
