@@ -30,9 +30,26 @@ void CoreState::Reset() {
 }
 
 bool CoreState::CheckAndClearExcFlag() {
-  bool flag = !!exc_code_;
-  exc_code_ = 0;
-  return flag;
+  if (exc_code_) {
+    exc_code_ = 0;
+    // set machine mode EPC & next pc
+    core_.csr().set_mepc(pc_);
+    next_pc_ = core_.csr().trap_vec();
+    // update machine mode status CSR
+    auto mstatus_val = core_.csr().mstatus();
+    auto mstatus = PtrCast<MStatus>(&mstatus_val);
+    mstatus->mpie = mstatus->mie;
+    mstatus->mie = 0;
+    mstatus->mpp = core_.csr().cur_priv();
+    core_.csr().set_cur_priv(kPrivLevelM);
+    core_.csr().set_mstatus(*IntPtrCast<32>(&mstatus));
+    // clear LR/SC flag
+    core_.exc_mon().ClearFlag();
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 void CoreState::CheckInterrupt() {
@@ -47,23 +64,10 @@ void CoreState::RaiseException(std::uint32_t exc_code,
                                std::uint32_t trap_val) {
   // check priority
   if (GetExcPriority(exc_code) > GetExcPriority(exc_code_)) {
-    // set machine mode EPC & next pc
-    core_.csr().set_mepc(pc_);
-    next_pc_ = core_.csr().trap_vec();
-    // save other state
+    // save exception cause
     exc_code_ = exc_code;
     core_.csr().set_mcause(exc_code);
     core_.csr().set_mtval(trap_val);
-    // update machine mode status CSR
-    auto mstatus_val = core_.csr().mstatus();
-    auto mstatus = PtrCast<MStatus>(&mstatus_val);
-    mstatus->mpie = mstatus->mie;
-    mstatus->mie = 0;
-    mstatus->mpp = core_.csr().cur_priv();
-    core_.csr().set_cur_priv(kPrivLevelM);
-    core_.csr().set_mstatus(*IntPtrCast<32>(&mstatus));
-    // clear LR/SC flag
-    core_.exc_mon().ClearFlag();
   }
 }
 
