@@ -38,7 +38,7 @@ void Core::Reset() {
 
 void Core::NextCycle() {
   // fetch instruction
-  auto inst_data = state_.bus().ReadWord(state_.pc());
+  auto inst_data = bus_->ReadWord(state_.pc());
   auto state = state_;
   state.next_pc() = state.pc() + 4;
   // select functional unit

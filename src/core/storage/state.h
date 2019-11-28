@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include "bus/bus.h"
+#include "peripheral/peripheral.h"
 #include "core/storage/csr.h"
 #include "core/storage/excmon.h"
 
@@ -41,7 +41,7 @@ class CoreState {
 
   // getters
   // bus
-  Bus &bus();
+  const PeripheralPtr &bus() const;
   // CSR
   CSR &csr();
   // exclusive monitor

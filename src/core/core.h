@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "bus/bus.h"
+#include "peripheral/peripheral.h"
 #include "core/storage/state.h"
 #include "core/storage/csr.h"
 #include "core/storage/excmon.h"
@@ -13,7 +13,7 @@
 
 class Core {
  public:
-  Core(Bus &bus) : bus_(bus), state_(*this) { InitUnits(); }
+  Core(PeripheralPtr bus) : bus_(bus), state_(*this) { InitUnits(); }
 
   // reset the state of current core
   void Reset();
@@ -22,7 +22,7 @@ class Core {
 
   // getters
   // bus
-  Bus &bus() { return bus_; }
+  const PeripheralPtr &bus() const { return bus_; }
   // control and status registers
   CSR &csr() { return csr_; }
   // exclusive monitor
@@ -37,7 +37,7 @@ class Core {
   void InitUnits();
 
   // bus
-  Bus &bus_;
+  PeripheralPtr bus_;
   // CSR
   CSR csr_;
   // exclusive monitor ('LR' & 'SC')
