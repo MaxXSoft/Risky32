@@ -13,7 +13,8 @@
 
 class Core {
  public:
-  Core(PeripheralPtr bus) : bus_(bus), state_(*this) { InitUnits(); }
+  Core(const PeripheralPtr &bus)
+      : bus_(bus), state_(*this) { InitUnits(); }
 
   // reset the state of current core
   void Reset();

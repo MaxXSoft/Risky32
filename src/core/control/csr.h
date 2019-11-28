@@ -30,6 +30,8 @@ class CSR {
   std::uint32_t cur_priv() const { return cur_priv_; }
   // S-mode exception program counter
   std::uint32_t sepc() const { return sepc_; }
+  // S-mode address translation and protection register
+  std::uint32_t satp() const { return satp_; }
   // trap vector
   std::uint32_t trap_vec() const {
     if ((mtvec_ & 0b11) == 1) {
