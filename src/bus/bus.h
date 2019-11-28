@@ -6,7 +6,7 @@
 
 #include "peripheral/peripheral.h"
 
-class Bus {
+class Bus : public PeripheralInterface {
  public:
   Bus() {}
 
@@ -21,17 +21,17 @@ class Bus {
                                      std::uint32_t &offset);
 
   // read a byte (8-bit) from bus
-  std::uint8_t ReadByte(std::uint32_t addr);
+  std::uint8_t ReadByte(std::uint32_t addr) override;
   // write a byte (8-bit) to bus
-  void WriteByte(std::uint32_t addr, std::uint8_t value);
+  void WriteByte(std::uint32_t addr, std::uint8_t value) override;
   // read a half word (16-bit) from bus
-  std::uint16_t ReadHalf(std::uint32_t addr);
+  std::uint16_t ReadHalf(std::uint32_t addr) override;
   // write a half word (16-bit) to bus
-  void WriteHalf(std::uint32_t addr, std::uint16_t value);
+  void WriteHalf(std::uint32_t addr, std::uint16_t value) override;
   // read a word (32-bit) from bus
-  std::uint32_t ReadWord(std::uint32_t addr);
+  std::uint32_t ReadWord(std::uint32_t addr) override;
   // write a word (32-bit) to bus
-  void WriteWord(std::uint32_t addr, std::uint32_t value);
+  void WriteWord(std::uint32_t addr, std::uint32_t value) override;
 
  private:
   struct PeripheralItem {
