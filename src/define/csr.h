@@ -34,12 +34,18 @@ struct SStatus {
   std::uint32_t sd    : 1;  // zero (&xs || &fs)
 };
 
+// mask for supervisor status register
+constexpr std::uint32_t kMaskSStatus    = 0x00000100;
+
 // supervisor address translation and protection register
 struct SATP {
   std::uint32_t ppn   : 22; // physical page number
   std::uint32_t asid  : 9;  // zero (reduce complexity)
   std::uint32_t mode  : 1;  // enable/disable translation
 };
+
+// mask for supervisor address translation and protection register
+constexpr std::uint32_t kMaskSATP       = 0x803fffff;
 
 // machine status register
 struct MStatus {
@@ -66,6 +72,9 @@ struct MStatus {
   std::uint32_t sd    : 1;  // zero (&xs || &fs)
 };
 
+// mask for machine status register
+constexpr std::uint32_t kMaskMStatus    = 0x00001988;
+
 // machine ISA register
 struct MISA {
   std::uint32_t ext   : 26; // IMA, read only
@@ -90,6 +99,9 @@ struct MIE {
   std::uint32_t wpri3 : 20; // zero
 };
 
+// mask for machine interrupt-enable register
+constexpr std::uint32_t kMaskMIE        = 0x00000888;
+
 // machine interrupt-pending register
 struct MIP {
   std::uint32_t usip  : 1;  // zero (no N extension)
@@ -107,6 +119,9 @@ struct MIP {
   std::uint32_t wpri3 : 20; // zero
 };
 
+// mask for machine interrupt-pending register
+constexpr std::uint32_t kMaskMIP        = 0x00000888;
+
 // machine trap-vector base-address register
 struct MTVec {
   std::uint32_t mode  : 2;  // vector mode
@@ -123,6 +138,7 @@ struct MCause {
 // privilege levels
 constexpr std::uint32_t kPrivLevelU     = 0b00;
 constexpr std::uint32_t kPrivLevelS     = 0b01;
+constexpr std::uint32_t kPrivLevelH     = 0b10; // unimplemented
 constexpr std::uint32_t kPrivLevelM     = 0b11;
 
 // user counters
