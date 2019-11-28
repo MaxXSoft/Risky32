@@ -15,9 +15,11 @@ Risky32 is a RISC-V simulator written in C++.
 - [x] A extension
 - [ ] F extension
 - [ ] D extension
-- [ ] Machine Mode CSRs
-- [ ] User Mode
-- [ ] Supervisor Mode & CSRs
+- [x] Machine mode CSRs
+- [x] User mode
+- [x] Supervisor mode & CSRs (partial supported)
+- [ ] CLINT and PLIC
+- [ ] Virtual-memory systems
 - [ ] JIT
 
 ## Copyright and License
