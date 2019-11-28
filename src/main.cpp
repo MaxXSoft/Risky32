@@ -58,10 +58,10 @@ int main(int argc, const char *argv[]) {
   }
 
   // initialize system bus
-  Bus bus;
-  bus.AddPeripheral(kResetVector, RoundToPow2(rom->size()), rom);
-  bus.AddPeripheral(0x80000000, RoundToPow2(ram->size()), ram);
-  bus.AddPeripheral(0x90000000, 512, gpio);
+  auto bus = std::make_shared<Bus>();
+  bus->AddPeripheral(kResetVector, RoundToPow2(rom->size()), rom);
+  bus->AddPeripheral(0x80000000, RoundToPow2(ram->size()), ram);
+  bus->AddPeripheral(0x90000000, 512, gpio);
 
   // initialize core
   Core core(bus);
