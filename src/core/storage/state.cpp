@@ -44,6 +44,7 @@ std::uint32_t UpdateCSR(CSR &csr, std::uint32_t addr,
 void CoreState::Reset() {
   for (auto &&i : regs_) i = 0;
   pc_ = kResetVector;
+  exc_code_ = 0;
 }
 
 bool CoreState::CheckAndClearExcFlag() {

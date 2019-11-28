@@ -101,13 +101,13 @@ void Core::NextCycle() {
     }
   }
   // handle interrupt & exception
-  if (state_.next_pc() & 0b11) {
+  if (state.next_pc() & 0b11) {
     state.RaiseException(kExcInstAddrMisalign, state.next_pc());
   }
   else {
-    state_.CheckInterrupt();
+    state.CheckInterrupt();
   }
-  if (!state_.CheckAndClearExcFlag()) {
+  if (!state.CheckAndClearExcFlag()) {
     // no exception, perform write back operation
     state_ = state;
   }
