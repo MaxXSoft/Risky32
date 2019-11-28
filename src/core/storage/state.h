@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 #include "peripheral/peripheral.h"
-#include "core/storage/csr.h"
+#include "core/control/csr.h"
 #include "core/storage/excmon.h"
 
 // forward declaration of 'Core'

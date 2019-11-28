@@ -6,8 +6,8 @@
 #include <cstddef>
 
 #include "peripheral/peripheral.h"
+#include "core/control/csr.h"
 #include "core/storage/state.h"
-#include "core/storage/csr.h"
 #include "core/storage/excmon.h"
 #include "core/unit.h"
 
