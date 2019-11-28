@@ -21,7 +21,6 @@ class CSR {
 
   // setters
   void set_cur_priv(std::uint32_t cur_priv) { cur_priv_ = cur_priv; }
-  void set_mstatus(std::uint32_t mstatus) { mstatus_ = mstatus; }
   void set_mepc(std::uint32_t mepc) { mepc_ = mepc; }
   void set_mcause(std::uint32_t mcause) { mcause_ = mcause; }
   void set_mtval(std::uint32_t mtval) { mtval_ = mtval; }
@@ -31,8 +30,6 @@ class CSR {
   std::uint32_t cur_priv() const { return cur_priv_; }
   // S-mode exception program counter
   std::uint32_t sepc() const { return sepc_; }
-  // machine mode status
-  std::uint32_t mstatus() const { return mstatus_; }
   // trap vector
   std::uint32_t trap_vec() const {
     if (mtvec_ & 0b11 == 1) {

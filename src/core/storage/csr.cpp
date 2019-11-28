@@ -2,12 +2,34 @@
 
 namespace {
 
-//
+// get privilege level by address of CSR
+inline int GetPrivByCSRAddr(std::uint32_t addr) {
+  return (addr >> 8) & 0b11;
+}
 
 }  // namespace
 
 void CSR::InitCSR() {
-  // TODO
+  // CSR that hardwired to zero
+  zero_ = 0;
+  // supervisor mode CSRs
+  sstatus_ = 0;
+  sscratch_ = 0;
+  sepc_ = 0;
+  satp_ = 0;
+  // machine mode CSRs
+  mstatus_ = 0;
+  misa_ = 0x40141101;   // RV32IMA, S-mode & U-mode
+  mie_ = 0;
+  mtvec_ = 0;
+  mscratch_ = 0;
+  mepc_ = 0;
+  mcause_ = 0;
+  mtval_ = 0;
+  mip_ = 0;
+  // machine mode counters (64-bit)
+  mcycle_ = 0;
+  minstret_ = 0;
 }
 
 void CSR::InitMapping() {
@@ -83,30 +105,90 @@ void CSR::UpdateCounter() {
 }
 
 bool CSR::ReadData(std::uint32_t addr, std::uint32_t &value) {
-  // TODO: deal with privilege! (lower cannot access upper)
   auto it = csrs_.find(addr);
   if (it == csrs_.end()) {
     // CSR does not exist, illegal instruction
     return false;
   }
   else {
-    value = *it->second;
+    // check if accessing CSRs in upper privilege level
+    if (cur_priv_ < GetPrivByCSRAddr(addr)) return false;
+    switch (addr) {
+      case kCSRTime: {
+        // TODO: read from CLINT
+        break;
+      }
+      case kCSRTimeH: {
+        // TODO: read from CLINT
+        break;
+      }
+      default: {
+        // return value
+        value = *it->second;
+        break;
+      }
+    }
     return true;
   }
 }
 
 bool CSR::WriteData(std::uint32_t addr, std::uint32_t value) {
-  // TODO: deal with privilege! (lower cannot access upper)
   auto it = csrs_.find(addr);
   if (it == csrs_.end()) {
     // CSR does not exist, illegal instruction
     return false;
   }
   else {
-    // TODO: with bit mask
-    // TODO: handle side effects
-    // TODO: write to epc and then misaligned?
-    // TODO: sync mstatus & sstatus
+    // check if accessing CSRs in upper privilege level
+    if (cur_priv_ < GetPrivByCSRAddr(addr)) return false;
+    switch (addr) {
+      case kCSRSStatus: {
+        *it->second = value & kMaskSStatus;
+        // sync 'mstatus'
+        mstatus_ = (mstatus_ & ~kMaskSStatus) | (value & kMaskSStatus);
+        mstatus_ &= kMaskMStatus;
+        break;
+      }
+      case kCSRSATP: {
+        *it->second = value & kMaskSATP;
+        break;
+      }
+      case kCSRMStatus: {
+        auto mstatus = PtrCast<MStatus>(&value);
+        if (mstatus->mpp == kPrivLevelH) mstatus->mpp = 0;
+        *it->second = value & kMaskMStatus;
+        // sync 'sstatus'
+        sstatus_ = (sstatus_ & ~kMaskMStatus) | (value & kMaskMStatus);
+        sstatus_ &= kMaskSStatus;
+        break;
+      }
+      case kCSRMIE: {
+        *it->second = value & kMaskMIE;
+        break;
+      }
+      case kCSRMTVec: {
+        auto mtvec = PtrCast<MTVec>(&value);
+        if (mtvec->mode >= 2) mtvec->mode = 0;
+        *it->second = value;
+        break;
+      }
+      case kCSRMIP: {
+        *it->second = value & kMaskMIP;
+        break;
+      }
+      case kCSRCycle: case kCSRTime: case kCSRInstRet:
+      case kCSRCycleH: case kCSRTimeH: case kCSRInstRetH:
+      case kCSRMVenderId: case kCSRMArchId: case kCSRMImpId:
+      case kCSRMHartId: case kCSRMISA: {
+        // read only, do nothing
+        break;
+      }
+      default: {
+        // update value
+        *it->second = value;
+        break;
+      }
+    }
     // reset hardwired CSR/bits
     zero_ = 0;
     return true;
