@@ -32,7 +32,7 @@ class CSR {
   std::uint32_t sepc() const { return sepc_; }
   // trap vector
   std::uint32_t trap_vec() const {
-    if (mtvec_ & 0b11 == 1) {
+    if ((mtvec_ & 0b11) == 1) {
       return mtvec_ - 1 + (mcause_ & 0x7fffffff) * 4;
     }
     else {

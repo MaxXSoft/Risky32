@@ -57,7 +57,6 @@ bool PerformSystem(const InstI &inst, CoreState &state) {
       break;
     }
     case kCSRRW: case kCSRRWI: {
-      bool success = false;
       auto val = inst.funct3 == kCSRRW ? state.regs(inst.rs1) : inst.rs1;
       // atomic read/write
       if (inst.rd) {
