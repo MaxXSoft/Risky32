@@ -1,5 +1,5 @@
-#ifndef RISKY32_CORE_STORAGE_CSR_H_
-#define RISKY32_CORE_STORAGE_CSR_H_
+#ifndef RISKY32_CORE_CONTROL_CSR_H_
+#define RISKY32_CORE_CONTROL_CSR_H_
 
 #include <unordered_map>
 #include <cstdint>
@@ -63,4 +63,4 @@ class CSR {
   std::uint64_t mcycle_, minstret_;
 };
 
-#endif  // RISKY32_CORE_STORAGE_CSR_H_
+#endif  // RISKY32_CORE_CONTROL_CSR_H_
