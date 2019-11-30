@@ -22,6 +22,9 @@ class MMU : public PeripheralInterface {
   // read instruction (execute from memory)
   std::uint32_t ReadInst(std::uint32_t addr);
 
+  // setters
+  void set_is_invalid(bool is_invalid) { is_invalid_ = is_invalid; }
+
   // getters
   // check if last operation is invalid
   bool is_invalid() const { return is_invalid_; }

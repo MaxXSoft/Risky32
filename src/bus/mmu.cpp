@@ -103,7 +103,6 @@ namespace {
 
 std::uint32_t MMU::GetPhysicalAddr(std::uint32_t addr, bool is_store,
                                    bool is_execute) {
-  is_invalid_ = false;
   auto satp_val = csr_.satp();
   auto satp = PtrCast<SATP>(&satp_val);
   if (!satp->mode) {
@@ -155,11 +154,13 @@ bool MMU::CheckPTEProperty(const Sv32PTE &pte, bool is_store,
 }
 
 std::uint8_t MMU::ReadByte(std::uint32_t addr) {
+  if (is_invalid_) return 0;
   auto pa = GetPhysicalAddr(addr, false, false);
   return is_invalid_ ? 0 : bus_->ReadByte(pa);
 }
 
 void MMU::WriteByte(std::uint32_t addr, std::uint8_t value) {
+  if (is_invalid_) return;
   auto pa = GetPhysicalAddr(addr, true, false);
   if (!is_invalid_) {
     bus_->WriteByte(pa, value);
@@ -167,11 +168,13 @@ void MMU::WriteByte(std::uint32_t addr, std::uint8_t value) {
 }
 
 std::uint16_t MMU::ReadHalf(std::uint32_t addr) {
+  if (is_invalid_) return 0;
   auto pa = GetPhysicalAddr(addr, false, false);
   return is_invalid_ ? 0 : bus_->ReadHalf(pa);
 }
 
 void MMU::WriteHalf(std::uint32_t addr, std::uint16_t value) {
+  if (is_invalid_) return;
   auto pa = GetPhysicalAddr(addr, true, false);
   if (!is_invalid_) {
     bus_->WriteHalf(pa, value);
@@ -179,11 +182,13 @@ void MMU::WriteHalf(std::uint32_t addr, std::uint16_t value) {
 }
 
 std::uint32_t MMU::ReadWord(std::uint32_t addr) {
+  if (is_invalid_) return 0;
   auto pa = GetPhysicalAddr(addr, false, false);
   return is_invalid_ ? 0 : bus_->ReadWord(pa);
 }
 
 void MMU::WriteWord(std::uint32_t addr, std::uint32_t value) {
+  if (is_invalid_) return;
   auto pa = GetPhysicalAddr(addr, true, false);
   if (!is_invalid_) {
     bus_->WriteWord(pa, value);
@@ -191,6 +196,7 @@ void MMU::WriteWord(std::uint32_t addr, std::uint32_t value) {
 }
 
 std::uint32_t MMU::ReadInst(std::uint32_t addr) {
+  if (is_invalid_) return 0;
   auto pa = GetPhysicalAddr(addr, false, true);
   return is_invalid_ ? 0 : bus_->ReadWord(pa);
 }
