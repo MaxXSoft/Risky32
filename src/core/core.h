@@ -6,6 +6,7 @@
 #include <cstddef>
 
 #include "peripheral/peripheral.h"
+#include "bus/mmu.h"
 #include "core/control/csr.h"
 #include "core/storage/state.h"
 #include "core/storage/excmon.h"
@@ -14,7 +15,7 @@
 class Core {
  public:
   Core(const PeripheralPtr &bus)
-      : bus_(bus), state_(*this) { InitUnits(); }
+      : bus_(bus), mmu_(csr_, bus), state_(*this) { InitUnits(); }
 
   // reset the state of current core
   void Reset();
@@ -23,7 +24,7 @@ class Core {
 
   // getters
   // bus
-  const PeripheralPtr &bus() const { return bus_; }
+  PeripheralInterface &bus() { return mmu_; }
   // control and status registers
   CSR &csr() { return csr_; }
   // exclusive monitor
@@ -36,9 +37,13 @@ class Core {
  private:
   // initialize all functional units
   void InitUnits();
+  // dispatch and execute
+  void Execute(std::uint32_t inst_data, CoreState &state);
 
   // bus
   PeripheralPtr bus_;
+  // MMU
+  MMU mmu_;
   // CSR
   CSR csr_;
   // exclusive monitor ('LR' & 'SC')

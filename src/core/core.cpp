@@ -11,6 +11,14 @@
 #include "core/unit/branch.h"
 #include "core/unit/system.h"
 
+// helper macro
+#define CHECK_PAGE_FAULT(exc_code)               \
+  do {                                           \
+    if (mmu_.is_invalid()) {                     \
+      state.RaiseException(exc_code, inst_data); \
+    }                                            \
+  } while (0)
+
 void Core::InitUnits() {
   // create units
   auto int_unit     = std::make_shared<IntUnit>();
@@ -32,15 +40,7 @@ void Core::InitUnits() {
   units_[kSystem]   = system_unit;
 }
 
-void Core::Reset() {
-  state_.Reset();
-}
-
-void Core::NextCycle() {
-  // fetch instruction
-  auto inst_data = bus_->ReadWord(state_.pc());
-  auto state = state_;
-  state.next_pc() = state.pc() + 4;
+void Core::Execute(std::uint32_t inst_data, CoreState &state) {
   // select functional unit
   auto inst = reinterpret_cast<Inst *>(&inst_data);
   auto it = units_.find(inst->opcode);
@@ -55,18 +55,24 @@ void Core::NextCycle() {
       case kAMO: case kOp: {
         auto inst_r = reinterpret_cast<InstR *>(&inst_data);
         it->second->ExecuteR(*inst_r, state);
+        // check MMU exception
+        CHECK_PAGE_FAULT(kExcStAMOPageFault);
         break;
       }
       // I-type
-      case kLoad: case kMiscMem: case kJALR: case kSystem: {
+      case kLoad: case kMiscMem: case kJALR: {
         auto inst_i = reinterpret_cast<InstI *>(&inst_data);
         it->second->ExecuteI(*inst_i, state);
+        // check MMU exception
+        CHECK_PAGE_FAULT(kExcLoadPageFault);
         break;
       }
       // S-type
       case kStore: case kBranch: {
         auto inst_s = reinterpret_cast<InstS *>(&inst_data);
         it->second->ExecuteS(*inst_s, state);
+        // check MMU exception
+        CHECK_PAGE_FAULT(kExcStAMOPageFault);
         break;
       }
       // U-type
@@ -75,7 +81,7 @@ void Core::NextCycle() {
         it->second->ExecuteU(*inst_u, state);
         break;
       }
-      // other
+      // other (immediate)
       case kOpImm: {
         auto inst_i = reinterpret_cast<InstI *>(&inst_data);
         switch (inst_i->funct3) {
@@ -92,6 +98,20 @@ void Core::NextCycle() {
         }
         break;
       }
+      // other (system)
+      case kSystem: {
+        auto inst_r = reinterpret_cast<InstR *>(&inst_data);
+        if (inst_r->funct7 == kSFENCE) {
+          // 'SFENCE.VMA' instruction
+          it->second->ExecuteR(*inst_r, state);
+        }
+        else {
+          // other privileged instructions
+          auto inst_i = reinterpret_cast<InstI *>(&inst_data);
+          it->second->ExecuteI(*inst_i, state);
+        }
+        break;
+      }
       default: {
         // just ignore
         // since 'illegal instruction' exception has been handled before
@@ -99,6 +119,27 @@ void Core::NextCycle() {
         break;
       }
     }
+  }
+}
+
+void Core::Reset() {
+  state_.Reset();
+}
+
+void Core::NextCycle() {
+  // reset MMU state
+  mmu_.set_is_invalid(false);
+  // fetch instruction
+  auto inst_data = mmu_.ReadInst(state_.pc());
+  auto state = state_;
+  state.next_pc() = state.pc() + 4;
+  // check MMU exception
+  if (mmu_.is_invalid()) {
+    state.RaiseException(kExcInstPageFault, inst_data);
+  }
+  else {
+    // dispatch and execute
+    Execute(inst_data, state);
   }
   // handle interrupt & exception
   if (state.next_pc() & 0b11) {
