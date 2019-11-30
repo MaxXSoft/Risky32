@@ -101,7 +101,7 @@ void Core::Execute(std::uint32_t inst_data, CoreState &state) {
       // other (system)
       case kSystem: {
         auto inst_r = reinterpret_cast<InstR *>(&inst_data);
-        if (inst_r->funct7 == kSFENCE) {
+        if (inst_r->funct3 == kPRIV && inst_r->funct7 == kSFENCE) {
           // 'SFENCE.VMA' instruction
           it->second->ExecuteR(*inst_r, state);
         }

@@ -101,8 +101,9 @@ bool PerformSystem(const InstI &inst, CoreState &state) {
 }  // namespace
 
 void SystemUnit::ExecuteR(const InstR &inst, CoreState &state) {
-  if (inst.funct3 == kPRIV && inst.funct7 == kSFENCE && !inst.rd) {
-    // 'SFENCE.VMA' instruction
+  // 'SFENCE.VMA' instruction
+  // already checked 'funct3' and 'funct7' in 'Core::Execute'
+  if (!inst.rd) {
     // do nothing because there is no TLB
   }
   else {
