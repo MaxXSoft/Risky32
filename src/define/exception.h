@@ -28,8 +28,8 @@ constexpr std::uint32_t kExcLoadAccFault      = 5;    // ignored
 constexpr std::uint32_t kExcStAMOAddrMisalign = 6;
 constexpr std::uint32_t kExcStAMOAccFault     = 7;    // ignored
 constexpr std::uint32_t kExcMEnvCall          = 11;
-constexpr std::uint32_t kExcInstPageFault     = 12;   // ignored
-constexpr std::uint32_t kExcLoadPageFault     = 13;   // ignored
-constexpr std::uint32_t kExcStAMOPageFault    = 15;   // ignored
+constexpr std::uint32_t kExcInstPageFault     = 12;
+constexpr std::uint32_t kExcLoadPageFault     = 13;
+constexpr std::uint32_t kExcStAMOPageFault    = 15;
 
 #endif  // RISKY32_DEFINE_EXCEPTION_H_
