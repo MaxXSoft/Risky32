@@ -133,7 +133,7 @@ bool CoreState::ReturnFromTrap(std::uint32_t mode) {
   return true;
 }
 
-const PeripheralPtr &CoreState::bus() const { return core_.bus(); }
+PeripheralInterface &CoreState::bus() { return core_.bus(); }
 
 CSR &CoreState::csr() { return core_.csr(); }
 

@@ -55,7 +55,7 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
       else if (CheckNoAddrExc(addr, state)) {
         // set flag & load data
         state.exc_mon().SetFlag(addr);
-        state.regs(inst.rd) = state.bus()->ReadWord(addr);
+        state.regs(inst.rd) = state.bus().ReadWord(addr);
       }
       break;
     }
@@ -63,7 +63,7 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
       if (CheckNoAddrExc(addr, state)) {
         if (state.exc_mon().CheckFlag(addr)) {
           // success
-          state.bus()->WriteWord(addr, state.regs(inst.rs2));
+          state.bus().WriteWord(addr, state.regs(inst.rs2));
           state.regs(inst.rd) = 0;
         }
         else {
@@ -77,82 +77,82 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     }
     case kAMOSWAP: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = state.regs(inst.rs2);
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOADD: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = data + state.regs(inst.rs2);
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOXOR: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = data ^ state.regs(inst.rs2);
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOAND: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = data & state.regs(inst.rs2);
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOOR: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = data | state.regs(inst.rs2);
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOMIN: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = Min(data, state.regs(inst.rs2));
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOMAX: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = Max(data, state.regs(inst.rs2));
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOMINU: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = MinU(data, state.regs(inst.rs2));
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
     case kAMOMAXU: {
       if (CheckNoAddrExc(addr, state)) {
-        auto data = state.bus()->ReadWord(addr);
+        auto data = state.bus().ReadWord(addr);
         state.regs(inst.rd) = data;
         auto result = MaxU(data, state.regs(inst.rs2));
-        state.bus()->WriteWord(addr, result);
+        state.bus().WriteWord(addr, result);
       }
       break;
     }
@@ -172,7 +172,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
     switch (inst.funct3) {
       case kLB: {
         // load signed byte
-        std::int8_t data = state.bus()->ReadByte(addr);
+        std::int8_t data = state.bus().ReadByte(addr);
         state.regs(inst.rd) = data;
         break;
       }
@@ -183,7 +183,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
-          std::int16_t data = state.bus()->ReadHalf(addr);
+          std::int16_t data = state.bus().ReadHalf(addr);
           state.regs(inst.rd) = data;
         }
         break;
@@ -195,13 +195,13 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
-          state.regs(inst.rd) = state.bus()->ReadWord(addr);
+          state.regs(inst.rd) = state.bus().ReadWord(addr);
         }
         break;
       }
       case kLBU: {
         // load unsigned byte
-        state.regs(inst.rd) = state.bus()->ReadByte(addr);
+        state.regs(inst.rd) = state.bus().ReadByte(addr);
         break;
       }
       case kLHU: {
@@ -211,7 +211,7 @@ void LoadStoreUnit::ExecuteI(const InstI &inst, CoreState &state) {
           state.RaiseException(kExcLoadAddrMisalign, addr);
         }
         else {
-          state.regs(inst.rd) = state.bus()->ReadHalf(addr);
+          state.regs(inst.rd) = state.bus().ReadHalf(addr);
         }
         break;
       }
@@ -249,7 +249,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
   switch (inst.funct3) {
     case kSB: {
       // store byte
-      state.bus()->WriteByte(addr, state.regs(inst.rs2));
+      state.bus().WriteByte(addr, state.regs(inst.rs2));
     }
     case kSH: {
       // store half word
@@ -258,7 +258,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
         state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {
-        state.bus()->WriteHalf(addr, state.regs(inst.rs2));
+        state.bus().WriteHalf(addr, state.regs(inst.rs2));
       }
       break;
     }
@@ -269,7 +269,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
         state.RaiseException(kExcStAMOAddrMisalign, addr);
       }
       else {
-        state.bus()->WriteWord(addr, state.regs(inst.rs2));
+        state.bus().WriteWord(addr, state.regs(inst.rs2));
       }
       break;
     }

@@ -41,7 +41,7 @@ class CoreState {
 
   // getters
   // bus
-  const PeripheralPtr &bus() const;
+  PeripheralInterface &bus();
   // CSR
   CSR &csr();
   // exclusive monitor
