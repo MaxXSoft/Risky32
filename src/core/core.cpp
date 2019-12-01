@@ -155,5 +155,5 @@ void Core::NextCycle() {
   // prepare for next cycle
   state_.regs(0) = 0;
   state_.pc() = state.next_pc();
-  csr_.UpdateCounter();
+  csr_.UpdateCSR();
 }
