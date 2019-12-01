@@ -47,7 +47,7 @@ std::uint32_t UpdateCSR(CSR &csr, std::uint32_t addr,
   // update CSR data
   auto ret = callback(*data);
   // apply change
-  ans = csr.WriteData(addr, *IntPtrCast<32>(data));
+  ans = csr.WriteData(addr, value);
   assert(ans);
   return ret;
 }
