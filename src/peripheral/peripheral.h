@@ -7,6 +7,7 @@
 class PeripheralInterface {
  public:
   virtual ~PeripheralInterface() = default;
+
   // read a byte (8-bit) from current peripheral
   virtual std::uint8_t ReadByte(std::uint32_t addr) = 0;
   // write a byte (8-bit) to current peripheral
@@ -19,6 +20,9 @@ class PeripheralInterface {
   virtual std::uint32_t ReadWord(std::uint32_t addr) = 0;
   // write a word (32-bit) to current peripheral
   virtual void WriteWord(std::uint32_t addr, std::uint32_t value) = 0;
+
+  // length of address space
+  virtual std::uint32_t size() const = 0;
 };
 
 using PeripheralPtr = std::shared_ptr<PeripheralInterface>;
