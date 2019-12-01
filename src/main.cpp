@@ -8,7 +8,7 @@
 #include "peripheral/storage/ram.h"
 #include "peripheral/storage/rom.h"
 
-#include "define/exception.h"
+#include "define/mmio.h"
 #include "version.h"
 
 using namespace std;
@@ -21,17 +21,6 @@ void PrintVersion() {
   cout << endl;
   cout << "Copyright (C) 2010-2019 MaxXing, MaxXSoft. License GPLv3.";
   cout << endl;
-}
-
-inline std::size_t RoundToPow2(std::size_t val) {
-  auto v = val - 1;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v |= v >> 32;
-  return v + 1;
 }
 
 }  // namespace
@@ -59,9 +48,9 @@ int main(int argc, const char *argv[]) {
 
   // initialize system bus
   auto bus = std::make_shared<Bus>();
-  bus->AddPeripheral(kResetVector, RoundToPow2(rom->size()), rom);
-  bus->AddPeripheral(0x80000000, RoundToPow2(ram->size()), ram);
-  bus->AddPeripheral(0x90000000, 512, gpio);
+  bus->AddPeripheral(kMMIOAddrROM, rom);
+  bus->AddPeripheral(kMMIOAddrRAM, ram);
+  bus->AddPeripheral(kMMIOAddrGPIO, gpio);
 
   // initialize core
   Core core(bus);
