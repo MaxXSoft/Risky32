@@ -2,14 +2,13 @@
 
 namespace {
 
-inline std::size_t RoundToPow2(std::size_t val) {
+inline std::uint32_t RoundToPow2(std::uint32_t val) {
   auto v = val - 1;
   v |= v >> 1;
   v |= v >> 2;
   v |= v >> 4;
   v |= v >> 8;
   v |= v >> 16;
-  v |= v >> 32;
   return v + 1;
 }
 

@@ -44,7 +44,8 @@ void CLINT::WriteWord(std::uint32_t addr, std::uint32_t value) {
       break;
     }
     case kAddrMTimeHi: {
-      mtime_ = (mtime_ & 0xffffffff) | (value << 32);
+      mtime_ = (mtime_ & 0xffffffff) |
+               (static_cast<std::uint64_t>(value) << 32);
       break;
     }
     case kAddrMTimeCmpLo: {
@@ -52,7 +53,8 @@ void CLINT::WriteWord(std::uint32_t addr, std::uint32_t value) {
       break;
     }
     case kAddrMTimeCmpHi: {
-      mtimecmp_ = (mtimecmp_ & 0xffffffff) | (value << 32);
+      mtimecmp_ = (mtimecmp_ & 0xffffffff) |
+                  (static_cast<std::uint64_t>(value) << 32);
       break;
     }
     case kAddrMSIP: {
