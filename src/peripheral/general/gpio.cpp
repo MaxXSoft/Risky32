@@ -4,8 +4,8 @@
 
 namespace {
 
-constexpr int kAddrHaltFlag   = 0x100;
-constexpr int kAddrConsoleIO  = 0x104;
+constexpr std::uint32_t kAddrHaltFlag   = 0x100;
+constexpr std::uint32_t kAddrConsoleIO  = 0x104;
 
 }  // namespace
 
