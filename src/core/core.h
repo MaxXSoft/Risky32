@@ -15,14 +15,28 @@
 class Core {
  public:
   Core(const PeripheralPtr &bus)
-      : bus_(bus), mmu_(csr_, bus), state_(*this) { InitUnits(); }
+      : timer_int_(nullptr), soft_int_(nullptr), ext_int_(nullptr),
+        bus_(bus), mmu_(csr_, bus), state_(*this) {
+    InitUnits();
+  }
 
   // reset the state of current core
   void Reset();
   // run a cycle
   void NextCycle();
 
+  // setters
+  void set_timer_int(const bool *timer_int) { timer_int_ = timer_int; }
+  void set_soft_int(const bool *soft_int) { soft_int_ = soft_int; }
+  void set_ext_int(const bool *ext_int) { ext_int_ = ext_int; }
+
   // getters
+  // timer interrupt
+  const bool *timer_int() const { return timer_int_; }
+  // software interrupt
+  const bool *soft_int() const { return soft_int_; }
+  // external interrupt
+  const bool *ext_int() const { return ext_int_; }
   // bus
   PeripheralInterface &bus() { return mmu_; }
   // control and status registers
@@ -40,6 +54,8 @@ class Core {
   // dispatch and execute
   void Execute(std::uint32_t inst_data, CoreState &state);
 
+  // interrupt signals
+  const bool *timer_int_, *soft_int_, *ext_int_;
   // bus
   PeripheralPtr bus_;
   // MMU
