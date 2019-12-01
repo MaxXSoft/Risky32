@@ -10,6 +10,7 @@
 
 namespace {
 
+// get priority of exceptions & interrupts
 inline int GetExcPriority(std::uint32_t exc_code) {
   switch (exc_code) {
     case kExcStAMOAccFault: case kExcLoadAccFault: return 1;
@@ -19,7 +20,19 @@ inline int GetExcPriority(std::uint32_t exc_code) {
     case kExcMEnvCall: case kExcBreakpoint: return 4;
     case kExcInstAccFault: return 5;
     case kExcInstPageFault: return 5;
-    default: return 0;
+    default: {
+      if (exc_code & 0x80000000) {
+        switch (exc_code & 0x7fffffff) {
+          case kExcMSoftInt: return 6;
+          case kExcMTimerInt: return 7;
+          case kExcMExternalInt: return 8;
+          default: return 0;
+        }
+      }
+      else {
+        return 0;
+      }
+    }
   }
 }
 
@@ -73,7 +86,29 @@ bool CoreState::CheckAndClearExcFlag() {
 }
 
 void CoreState::CheckInterrupt() {
-  // TODO: check interrupts from CLINT & PLIC, update 'exc_code_'
+  // get 'mip' & 'mie' from CSR
+  auto mip_val = core_.csr().mip();
+  auto mip = PtrCast<MIP>(&mip_val);
+  auto mie_val = core_.csr().mie();
+  auto mie = PtrCast<MIE>(&mie_val);
+  // update 'mip'
+  mip->msip = core_.soft_int() ? *core_.soft_int() : 0;
+  mip->mtip = core_.timer_int() ? *core_.timer_int() : 0;
+  mip->meip = core_.ext_int() ? *core_.ext_int() : 0;
+  core_.csr().set_mip(mip_val);
+  // generate exception code of interrupts
+  auto exc_code = 1 << 31;
+  if (mip->meip && mie->meie) {
+    exc_code |= kExcMExternalInt;
+  }
+  else if (mip->mtip && mie->mtie) {
+    exc_code |= kExcMTimerInt;
+  }
+  else if (mip->msip && mie->msie) {
+    exc_code |= kExcMSoftInt;
+  }
+  // handle interrupts
+  if (mip_val & mie_val) RaiseException(exc_code);
 }
 
 void CoreState::RaiseException(std::uint32_t exc_code) {
