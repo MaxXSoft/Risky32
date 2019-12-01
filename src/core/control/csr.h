@@ -33,6 +33,8 @@ class CSR {
   std::uint32_t sepc() const { return sepc_; }
   // S-mode address translation and protection register
   std::uint32_t satp() const { return satp_; }
+  // M-mode interrupt-enable
+  std::uint32_t mie() const { return mie_; }
   // trap vector
   std::uint32_t trap_vec() const {
     if ((mtvec_ & 0b11) == 1) {
@@ -46,6 +48,8 @@ class CSR {
   std::uint32_t mepc() const { return mepc_; }
   // M-mode exception cause
   std::uint32_t mcause() const { return mcause_; }
+  // M-mode interrupt-pending
+  std::uint32_t mip() const { return mip_; }
 
  private:
   void InitCSR();
