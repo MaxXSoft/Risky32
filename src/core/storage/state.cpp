@@ -47,7 +47,7 @@ std::uint32_t UpdateCSR(CSR &csr, std::uint32_t addr,
   // update CSR data
   auto ret = callback(*data);
   // apply change
-  ans = csr.WriteData(addr, *IntPtrCast<32>(&data));
+  ans = csr.WriteData(addr, *IntPtrCast<32>(data));
   assert(ans);
   return ret;
 }
@@ -86,7 +86,10 @@ bool CoreState::CheckAndClearExcFlag() {
 }
 
 void CoreState::CheckInterrupt() {
-  // get 'mip' & 'mie' from CSR
+  // check M-mode interrupt only, since S-mode trap is not implemented
+  // get 'mstatus', 'mip' and 'mie' from CSR
+  auto mstatus_val = core_.csr().mstatus();
+  auto mstatus = PtrCast<MStatus>(&mstatus_val);
   auto mip_val = core_.csr().mip();
   auto mip = PtrCast<MIP>(&mip_val);
   auto mie_val = core_.csr().mie();
@@ -108,7 +111,7 @@ void CoreState::CheckInterrupt() {
     exc_code |= kExcMSoftInt;
   }
   // handle interrupts
-  if (mip_val & mie_val) RaiseException(exc_code);
+  if (mstatus->mie && (mip_val & mie_val)) RaiseException(exc_code);
 }
 
 void CoreState::RaiseException(std::uint32_t exc_code) {
