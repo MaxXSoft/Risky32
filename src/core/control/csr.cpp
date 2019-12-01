@@ -99,9 +99,12 @@ CSR::CSR() {
   InitMapping();
 }
 
-void CSR::UpdateCounter() {
+void CSR::UpdateCSR() {
+  // update counters
   ++mcycle_;
   ++minstret_;
+  // update 'mip'
+  // TODO
 }
 
 bool CSR::ReadData(std::uint32_t addr, std::uint32_t &value) {

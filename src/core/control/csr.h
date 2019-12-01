@@ -12,8 +12,8 @@ class CSR {
  public:
   CSR();
 
-  // update performance counter
-  void UpdateCounter();
+  // update CSRs (e.g. performance counters)
+  void UpdateCSR();
   // read data from CSR, returns false if failed
   bool ReadData(std::uint32_t addr, std::uint32_t &value);
   // write data to CSR, returns false if failed
