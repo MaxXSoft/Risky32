@@ -19,8 +19,8 @@ std::uint8_t GPIO::ReadByte(std::uint32_t addr) {
 
 void GPIO::WriteByte(std::uint32_t addr, std::uint8_t value) {
   switch (addr) {
-    case kAddrHaltFlag: halt_ = value;
-    case kAddrConsoleIO: std::putchar(value);
+    case kAddrHaltFlag: halt_ = value; break;
+    case kAddrConsoleIO: std::putchar(value); break;
     default:;
   }
 }
