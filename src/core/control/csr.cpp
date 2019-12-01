@@ -114,21 +114,11 @@ bool CSR::ReadData(std::uint32_t addr, std::uint32_t &value) {
   else {
     // check if accessing CSRs in upper privilege level
     if (cur_priv_ < GetPrivByCSRAddr(addr)) return false;
-    switch (addr) {
-      case kCSRTime: {
-        // TODO: read from CLINT
-        break;
-      }
-      case kCSRTimeH: {
-        // TODO: read from CLINT
-        break;
-      }
-      default: {
-        // return value
-        value = *it->second;
-        break;
-      }
-    }
+    // 'time' & 'timeh' is both memory mapped CSRs
+    // just raise an exception for simplicity
+    if (addr == kCSRTime || addr == kCSRTimeH) return false;
+    // return value
+    value = *it->second;
     return true;
   }
 }
