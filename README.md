@@ -18,9 +18,9 @@ Risky32 is a RISC-V simulator written in C++.
 - [x] Machine mode CSRs
 - [x] User mode
 - [x] Supervisor mode and CSRs (partial supported)
-- [x] CLINT
-- [ ] PLIC
-- [x] MMU and Virtual-memory system
+- [x] CLINT (core local interrupt controller)
+- [ ] PLIC (platform level interrupt controller)
+- [x] MMU and virtual-memory system
 - [ ] JIT
 
 ## Copyright and License
