@@ -1,9 +1,24 @@
 #include "bus/bus.h"
 
-bool Bus::AddPeripheral(std::uint32_t base_addr, std::uint32_t size,
+namespace {
+
+inline std::size_t RoundToPow2(std::size_t val) {
+  auto v = val - 1;
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  v |= v >> 32;
+  return v + 1;
+}
+
+}  // namespace
+
+bool Bus::AddPeripheral(std::uint32_t base_addr,
                         const PeripheralPtr &peripheral) {
-  // 'size' must be power of 2
-  if ((size & -size) != size) return false;
+  // get address space length of peripheral
+  auto size = RoundToPow2(peripheral->size());
   auto mask = ~(size - 1);
   // address space does not allow overlap
   for (const auto &i : peripherals_) {

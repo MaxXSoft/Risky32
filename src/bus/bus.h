@@ -11,7 +11,7 @@ class Bus : public PeripheralInterface {
   Bus() {}
 
   // add new peripheral to specific address space on the bus
-  bool AddPeripheral(std::uint32_t base_addr, std::uint32_t size,
+  bool AddPeripheral(std::uint32_t base_addr,
                      const PeripheralPtr &peripheral);
   // get peripheral from specific address
   PeripheralInterface *GetPeripheral(std::uint32_t addr);
