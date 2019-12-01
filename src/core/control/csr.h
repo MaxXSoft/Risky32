@@ -33,6 +33,8 @@ class CSR {
   std::uint32_t sepc() const { return sepc_; }
   // S-mode address translation and protection register
   std::uint32_t satp() const { return satp_; }
+  // M-mode status
+  std::uint32_t mstatus() const { return mstatus_; }
   // M-mode interrupt-enable
   std::uint32_t mie() const { return mie_; }
   // trap vector
