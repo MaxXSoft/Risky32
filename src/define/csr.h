@@ -119,9 +119,6 @@ struct MIP {
   std::uint32_t wpri3 : 20; // zero
 };
 
-// mask for machine interrupt-pending register
-constexpr std::uint32_t kMaskMIP        = 0x00000888;
-
 // machine trap-vector base-address register
 struct MTVec {
   std::uint32_t mode  : 2;  // vector mode

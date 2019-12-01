@@ -24,6 +24,7 @@ class CSR {
   void set_mepc(std::uint32_t mepc) { mepc_ = mepc; }
   void set_mcause(std::uint32_t mcause) { mcause_ = mcause; }
   void set_mtval(std::uint32_t mtval) { mtval_ = mtval; }
+  void set_mip(std::uint32_t mip) { mip_ = mip; }
 
   // getters
   // current privilege level

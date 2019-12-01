@@ -103,8 +103,6 @@ void CSR::UpdateCSR() {
   // update counters
   ++mcycle_;
   ++minstret_;
-  // update 'mip'
-  // TODO
 }
 
 bool CSR::ReadData(std::uint32_t addr, std::uint32_t &value) {
@@ -175,14 +173,10 @@ bool CSR::WriteData(std::uint32_t addr, std::uint32_t value) {
         *it->second = value;
         break;
       }
-      case kCSRMIP: {
-        *it->second = value & kMaskMIP;
-        break;
-      }
       case kCSRCycle: case kCSRTime: case kCSRInstRet:
       case kCSRCycleH: case kCSRTimeH: case kCSRInstRetH:
       case kCSRMVenderId: case kCSRMArchId: case kCSRMImpId:
-      case kCSRMHartId: case kCSRMISA: {
+      case kCSRMHartId: case kCSRMISA: case kCSRMIP: {
         // read only, do nothing
         break;
       }
