@@ -20,10 +20,7 @@ class RAM : public PeripheralInterface {
   void WriteHalf(std::uint32_t addr, std::uint16_t value) override;
   std::uint32_t ReadWord(std::uint32_t addr) override;
   void WriteWord(std::uint32_t addr, std::uint32_t value) override;
-
-  // getters
-  // size of RAM
-  std::size_t size() const { return ram_.size(); }
+  std::uint32_t size() const override { return ram_.size(); }
 
   // setters
   // reset the size of the RAM

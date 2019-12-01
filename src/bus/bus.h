@@ -33,6 +33,8 @@ class Bus : public PeripheralInterface {
   // write a word (32-bit) to bus
   void WriteWord(std::uint32_t addr, std::uint32_t value) override;
 
+  std::uint32_t size() const override { return 0; }
+
  private:
   struct PeripheralItem {
     std::uint32_t base_addr, mask;

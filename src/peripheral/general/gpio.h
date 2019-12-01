@@ -13,6 +13,7 @@ class GPIO : public PeripheralInterface {
   void WriteHalf(std::uint32_t addr, std::uint16_t value) override;
   std::uint32_t ReadWord(std::uint32_t addr) override;
   void WriteWord(std::uint32_t addr, std::uint32_t value) override;
+  std::uint32_t size() const override { return 512; }
 
   // getters
   bool halt() const { return halt_; }
