@@ -1,6 +1,6 @@
 # Risky32
 
-Risky32 is a RISC-V simulator written in C++.
+Risky32 is a RISC-V emulator written in C++.
 
 ## Details
 

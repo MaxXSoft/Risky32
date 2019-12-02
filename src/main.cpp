@@ -61,7 +61,7 @@ int main(int argc, const char *argv[]) {
   core.set_soft_int(clint->soft_int());
   core.Reset();
 
-  // run simulation
+  // run emulation
   while (!gpio->halt()) {
     core.NextCycle();
     clint->UpdateTimer();
