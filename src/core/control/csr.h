@@ -18,6 +18,8 @@ class CSR {
   bool ReadData(std::uint32_t addr, std::uint32_t &value);
   // write data to CSR, returns false if failed
   bool WriteData(std::uint32_t addr, std::uint32_t value);
+  // read data but ignores current privilege level
+  std::uint32_t ReadDataForce(std::uint32_t addr);
 
   // setters
   void set_cur_priv(std::uint32_t cur_priv) { cur_priv_ = cur_priv; }

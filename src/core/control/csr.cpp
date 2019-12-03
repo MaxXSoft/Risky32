@@ -181,3 +181,9 @@ bool CSR::WriteData(std::uint32_t addr, std::uint32_t value) {
     return true;
   }
 }
+
+std::uint32_t CSR::ReadDataForce(std::uint32_t addr) {
+  auto it = csrs_.find(addr);
+  assert(it != csrs_.end());
+  return *it->second;
+}
