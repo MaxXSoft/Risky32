@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include <cassert>
@@ -19,7 +20,7 @@ constexpr std::uint32_t kAddrBreak = 0x0;
 enum class CommandName {
   Unknown,
   Help, Quit,
-  Run, Break, Watch, Delete,
+  Break, Watch, Delete,
   Continue, StepInst,
   Print, Examine, Info
 };
@@ -33,7 +34,6 @@ enum class InfoItem {
 const std::unordered_map<std::string_view, CommandName> kCmdMap = {
   {"help", CommandName::Help},
   {"quit", CommandName::Quit}, {"q", CommandName::Quit},
-  {"run", CommandName::Run}, {"r", CommandName::Run},
   {"break", CommandName::Break}, {"b", CommandName::Break},
   {"watch", CommandName::Watch}, {"w", CommandName::Watch},
   {"delete", CommandName::Delete}, {"d", CommandName::Delete},
@@ -58,6 +58,11 @@ inline CommandName GetCommandName(std::string_view cmd) {
   return it == kCmdMap.end() ? CommandName::Unknown : it->second;
 }
 
+// print error message
+inline void LogError(std::string_view msg) {
+  std::cout << "ERROR: " << msg << std::endl;
+}
+
 // display help message
 void PrintHelp() {
   std::cout << "Debugger commands:" << std::endl;
@@ -65,8 +70,6 @@ void PrintHelp() {
                "--- show help message of CMD" << std::endl;
   std::cout << "  quit/q              "
                "--- quit program" << std::endl;
-  std::cout << "  run/r     [FILE]    "
-               "--- run FILE" << std::endl;
   std::cout << "  break/b   [ADDR]    "
                "--- set breakpoint at ADDR" << std::endl;
   std::cout << "  watch/w   EXPR      "
@@ -97,12 +100,6 @@ void PrintHelp(CommandName cmd) {
     case CommandName::Quit: {
       std::cout << "Syntax: quit/q" << std::endl;
       std::cout << "  Quit Risky32 and debugger." << std::endl;
-      break;
-    }
-    case CommandName::Run: {
-      std::cout << "Syntax: run/r [FILE]" << std::endl;
-      std::cout << "  Run current program, "
-                   "or run a specific file" << std::endl;
       break;
     }
     case CommandName::Break: {
@@ -143,7 +140,7 @@ void PrintHelp(CommandName cmd) {
     case CommandName::Examine: {
       std::cout << "Syntax: x EXPR [N]" << std::endl;
       std::cout << "  Examine N units memory at address EXPR, "
-                   "N defaults to 1." << std::endl;
+                   "N defaults to 1, 4 bytes per unit." << std::endl;
       break;
     }
     case CommandName::Info: {
@@ -157,8 +154,7 @@ void PrintHelp(CommandName cmd) {
       break;
     }
     default: {
-      std::cout << "ERROR: unknown command, "
-                   "try 'help' to see command list." << std::endl;
+      LogError("unknown command, try 'help' to see command list");
       break;
     }
   }
@@ -204,10 +200,6 @@ bool Debugger::ParseCommand(std::istream &is) {
       std::exit(0);
       break;
     }
-    case CommandName::Run: {
-      // TODO
-      break;
-    }
     case CommandName::Break: {
       //
       break;
@@ -232,7 +224,7 @@ bool Debugger::ParseCommand(std::istream &is) {
       else {
         is >> step_count_;
         if (!is) {
-          std::cout << "ERROR: invalid step count" << std::endl;
+          LogError("invalid step count");
           return false;
         }
       }
@@ -252,11 +244,22 @@ bool Debugger::ParseCommand(std::istream &is) {
       break;
     }
     default: {
-      std::cout << "ERROR: invalid command '" << cmd << "'" << std::endl;
+      LogError("unknown command, try 'help' to see command list");
       break;
     }
   }
   return false;
+}
+
+bool Debugger::Eval(std::string_view expr, std::uint32_t &ans) {
+  Eval(expr, ans, true);
+}
+
+bool Debugger::Eval(std::string_view expr, std::uint32_t &ans,
+                    bool record) {
+  auto ret = expr_eval_.Eval(expr, ans, record);
+  if (!ret) LogError("invalid exprssion");
+  return ret;
 }
 
 void Debugger::PrintInfo(std::istream &is) {
@@ -265,28 +268,50 @@ void Debugger::PrintInfo(std::istream &is) {
   is >> item;
   auto it = kInfoItemMap.find(item);
   if (it == kInfoItemMap.end()) {
-    std::cout << "ERROR: invalid 'ITEM', try 'help info'" << std::endl;
+    LogError("invalid 'ITEM', try 'help info'");
     return;
   }
   // show information
   switch (it->second) {
     case InfoItem::Reg: {
-      //
+      expr_eval_.PrintRegInfo(std::cout);
       break;
     }
     case InfoItem::CSR: {
-      //
+      expr_eval_.PrintCSRInfo(std::cout);
       break;
     }
     case InfoItem::Break: {
-      //
+      // TODO
       break;
     }
     case InfoItem::Watch: {
-      //
+      // TODO
       break;
     }
     default: assert(false);
+  }
+}
+
+void Debugger::ExamineMem(std::istream &is) {
+  // get parameters
+  std::string expr;
+  std::uint32_t addr, n;
+  is >> expr >> n;
+  if (expr.empty()) {
+    LogError("invalid 'EXPR', try 'help x'");
+    return;
+  }
+  if (!Eval(expr, addr, false)) return;
+  if (!is) n = 1;
+  // print memory units
+  while (n--) {
+    std::cout << std::hex << addr << ": ";
+    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
+    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
+    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
+    std::cout << core_.raw_bus()->ReadByte(addr++);
+    std::cout << std::dec << std::endl;
   }
 }
 

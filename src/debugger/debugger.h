@@ -9,13 +9,15 @@
 #include <signal.h>
 
 #include "core/core.h"
-#include "peripheral/peripheral.h"
 #include "peripheral/storage/rom.h"
+#include "peripheral/peripheral.h"
+#include "debugger/expreval.h"
 
 class Debugger : public PeripheralInterface {
  public:
   Debugger(Core &core, ROM &rom)
-      : core_(core), rom_(rom), prompt_("risky32> "), step_count_(0) {
+      : core_(core), rom_(rom), prompt_("risky32> "),
+        step_count_(0), expr_eval_(core) {
     InitSignal();
   }
 
@@ -44,8 +46,14 @@ class Debugger : public PeripheralInterface {
 
   // parse command, returns true if need to return from debugger
   bool ParseCommand(std::istream &is);
+  // evaluate expression with record
+  bool Eval(std::string_view expr, std::uint32_t &ans);
+  // evaluate expression
+  bool Eval(std::string_view expr, std::uint32_t &ans, bool record);
   // print information ('info ITEM' command)
   void PrintInfo(std::istream &is);
+  // examine memory ('x EXPR [N]' command)
+  void ExamineMem(std::istream &is);
 
   // pause flag when pressed C-c
   static volatile sig_atomic_t pause_;
@@ -59,6 +67,8 @@ class Debugger : public PeripheralInterface {
   std::string_view prompt_;
   // step count
   std::uint32_t step_count_;
+  // evaluator
+  ExprEvaluator expr_eval_;
 };
 
 #endif  // RISKY32_DEBUGGER_DEBUGGER_H_
