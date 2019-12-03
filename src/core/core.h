@@ -39,6 +39,8 @@ class Core {
   const bool *ext_int() const { return ext_int_; }
   // bus
   PeripheralInterface &bus() { return mmu_; }
+  // raw bus (without MMU)
+  const PeripheralPtr &raw_bus() { return bus_; }
   // control and status registers
   CSR &csr() { return csr_; }
   // exclusive monitor
