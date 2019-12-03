@@ -14,6 +14,8 @@ class ROM : public PeripheralInterface {
   bool LoadBinary(std::string_view file);
   // load hexadecimal byte file to ROM
   bool LoadHex(std::string_view file);
+  // replace a word in ROM (used by debugger)
+  std::uint32_t ReplaceWord(std::uint32_t addr, std::uint32_t value);
 
   std::uint8_t ReadByte(std::uint32_t addr) override;
   void WriteByte(std::uint32_t addr, std::uint8_t value) override;

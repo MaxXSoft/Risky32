@@ -46,6 +46,19 @@ bool ROM::LoadHex(std::string_view file) {
   return true;
 }
 
+std::uint32_t ROM::ReplaceWord(std::uint32_t addr, std::uint32_t value) {
+  assert((addr & 3) == 0);
+  // get original value
+  std::uint32_t word = rom_[addr] | (rom_[addr + 1] << 8);
+  word |= (rom_[addr + 2] << 16) | (rom_[addr + 3] << 24);
+  // write new value
+  rom_[addr] = value & 0xff;
+  rom_[addr + 1] = (value >> 8) & 0xff;
+  rom_[addr + 2] = (value >> 16) & 0xff;
+  rom_[addr + 3] = value >> 24;
+  return word;
+}
+
 std::uint8_t ROM::ReadByte(std::uint32_t addr) {
   return rom_[addr];
 }
