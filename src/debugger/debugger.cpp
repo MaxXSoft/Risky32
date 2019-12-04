@@ -10,11 +10,15 @@
 
 #include "readline/readline.h"
 #include "readline/history.h"
+#include "define/mmio.h"
 
 namespace {
 
 // MMIO address of 'break' operation
 constexpr std::uint32_t kAddrBreak = 0x0;
+// debugger breakpoint instruction ('sw zero, 0xff0(zero)')
+constexpr std::uint32_t kBreakInst = 0xfe002823;
+static_assert(kAddrBreak == 0x0 && kMMIOAddrDebugger == 0xfffffff0);
 
 // name of all debugger commands
 enum class CommandName {
@@ -22,12 +26,12 @@ enum class CommandName {
   Help, Quit,
   Break, Watch, Delete,
   Continue, StepInst,
-  Print, Examine, Info
+  Print, Examine, Info,
 };
 
 // name of all available ITEMs in command 'info'
 enum class InfoItem {
-  Reg, CSR, Break, Watch
+  Reg, CSR, Break, Watch,
 };
 
 // hashmap of all commands
@@ -212,6 +216,30 @@ bool Debugger::Eval(std::string_view expr, std::uint32_t &ans,
   return ret;
 }
 
+bool Debugger::DeleteBreak(std::uint32_t id) {
+  // try to find breakpoint info
+  auto it = breaks_.find(id);
+  if (it == breaks_.end()) return false;
+  const auto &info = it->second;
+  // delete breakpoint
+  core_.raw_bus()->WriteWord(info.addr, info.org_inst);
+  if (cur_bp_ == &info) cur_bp_ = nullptr;
+  pc_bp_.erase(info.addr);
+  breaks_.erase(it);
+  return true;
+}
+
+bool Debugger::DeleteWatch(std::uint32_t id) {
+  // try to find watchpoint info
+  auto it = watches_.find(id);
+  if (it == watches_.end()) return false;
+  const auto &info = it->second;
+  // delete watchpoint
+  expr_eval_.RemoveRecord(info.record_id);
+  watches_.erase(it);
+  return true;
+}
+
 void Debugger::AcceptCommand() {
   // clear debugger state
   user_pause_ = 0;
@@ -225,6 +253,7 @@ void Debugger::AcceptCommand() {
     auto line = readline(prompt_.data());
     if (!line) {
       // EOF, just exit
+      std::cout << "quit" << std::endl;
       std::exit(0);
     }
     if (*line) {
@@ -263,11 +292,11 @@ bool Debugger::ParseCommand(std::istream &is) {
       break;
     }
     case CommandName::Break: {
-      //
+      CreateBreak(is);
       break;
     }
     case CommandName::Watch: {
-      // TODO: expression
+      CreateWatch(is);
       break;
     }
     case CommandName::Delete: {
@@ -300,18 +329,63 @@ bool Debugger::ParseCommand(std::istream &is) {
   return false;
 }
 
+void Debugger::CreateBreak(std::istream &is) {
+  // get address of breakpoint
+  std::uint32_t addr;
+  is >> addr;
+  if (!is) {
+    addr = core_.pc();
+  }
+  else if (addr & 0b11) {
+    LogError("address misaligned, invalid breakpoint");
+    return;
+  }
+  // check for duplicates
+  if (pc_bp_.find(addr) != pc_bp_.end()) {
+    LogError("there is already a breakpoint at specific address");
+    return;
+  }
+  // replace original instruction
+  auto org_inst = core_.raw_bus()->ReadWord(addr);
+  core_.raw_bus()->WriteWord(addr, kBreakInst);
+  // store breakpoint info
+  auto ret = breaks_.insert({next_id_++, {addr, org_inst, 0}});
+  assert(ret.second);
+  pc_bp_.insert({addr, &ret.first->second});
+}
+
+void Debugger::CreateWatch(std::istream &is) {
+  // get expression
+  std::string expr;
+  if (!std::getline(is, expr)) {
+    LogError("invalid 'EXPR', try 'help watch'");
+    return;
+  }
+  // evaluate and record expression
+  std::uint32_t value, id = expr_eval_.next_id();
+  if (!Eval(expr, value)) return;
+  // store watchpoint info
+  watches_.insert({next_id_++, {id, value, 0}});
+}
+
 void Debugger::DeletePoint(std::istream &is) {
   std::uint32_t n;
   is >> n;
   if (!is) {
-    // delete all breakpoints & watchpoints
+    // show confirm message
     std::cout << "are you sure to delete all "
                  "breakpoints & watchpoints? [y/n]";
     if (std::tolower(std::cin.get()) != 'y') return;
-    // TODO
+    // delete all breakpoints
+    for (const auto &i : breaks_) DeleteBreak(i.first);
+    // delete all watchpoints
+    for (const auto &i : watches_) DeleteWatch(i.first);
   }
   else {
-    // TODO
+    // delete point by id
+    if (!DeleteBreak(n) && !DeleteWatch(n)) {
+      LogError("breakpoint/watchpoint not found");
+    }
   }
 }
 
@@ -333,15 +407,21 @@ bool Debugger::StepByInst(std::istream &is) {
 }
 
 void Debugger::PrintExpr(std::istream &is) {
+  std::uint32_t value, id;
   // get expression
   std::string expr;
   if (!std::getline(is, expr)) {
-    LogError("invalid 'EXPR', try 'help print'");
-    return;
+    // show last value
+    id = expr_eval_.next_id() - 1;
+    auto ret = expr_eval_.Eval(id, value);
+    assert(ret);
   }
-  // evaluate expression
-  std::uint32_t value, id = expr_eval_.next_id();
-  if (!Eval(expr, value)) return;
+  else {
+    // evaluate expression
+    id = expr_eval_.next_id();
+    if (!Eval(expr, value)) return;
+  }
+  // print result
   std::cout << "$" << id << " = " << value << std::endl;
 }
 
@@ -404,7 +484,8 @@ void Debugger::PrintInfo(std::istream &is) {
           const auto &info = it.second;
           std::cout << "  breakpoint #" << it.first << ": pc = "
                     << std::hex << std::setw(8) << std::setfill('0')
-                    << info.addr << std::dec << std::endl;
+                    << info.addr << std::dec << ", hit_count = "
+                    << info.hit_count << std::endl;
         }
       }
       break;
@@ -422,7 +503,8 @@ void Debugger::PrintInfo(std::istream &is) {
           std::cout << "  watchpoint #" << it.first << ": $"
                     << info.record_id << " = (";
           expr_eval_.PrintExprInfo(std::cout, info.record_id);
-          std::cout << "), value = " << info.last_val << std::endl;
+          std::cout << "), value = " << info.last_val
+                    << "hit_count = " << info.hit_count << std::endl;
         }
       }
       break;
@@ -453,8 +535,16 @@ std::uint32_t Debugger::ReadWord(std::uint32_t addr) {
 
 void Debugger::WriteWord(std::uint32_t addr, std::uint32_t value) {
   if (addr == kAddrBreak) {
-    // trigger breakpoint
+    // breakpoint triggered
     dbg_pause_ = true;
+    // update current breakpoint info
+    auto it = pc_bp_.find(core_.pc());
+    assert(it != pc_bp_.end());
+    cur_bp_ = it->second;
+    // update hit count
+    ++it->second->hit_count;
+    // show message
+    std::cout << "breakpoint hit, pc = " << it->first << std::endl;
   }
 }
 
@@ -466,6 +556,12 @@ void Debugger::NextCycle() {
   // check/update step count
   if (!step_count_) AcceptCommand();
   if (step_count_ > 0) --step_count_;
-  // next cycle for core
-  core_.NextCycle();
+  // run next core cycle
+  if (cur_bp_) {
+    core_.ReExecute(cur_bp_->org_inst);
+    cur_bp_ = nullptr;
+  }
+  else {
+    core_.NextCycle();
+  }
 }

@@ -16,9 +16,9 @@
 
 class Debugger : public PeripheralInterface {
  public:
-  Debugger(Core &core, ROM &rom)
-      : core_(core), rom_(rom), expr_eval_(core), prompt_("risky32> "),
-        dbg_pause_(false), step_count_(0), next_id_(0) {
+  Debugger(Core &core)
+      : core_(core), expr_eval_(core), prompt_("risky32> "),
+        dbg_pause_(false), step_count_(-1), next_id_(0), cur_bp_(nullptr) {
     InitSignal();
   }
 
@@ -43,6 +43,8 @@ class Debugger : public PeripheralInterface {
     std::uint32_t addr;
     // original instruction at PC address
     std::uint32_t org_inst;
+    // hit count
+    std::uint32_t hit_count;
   };
 
   // watchpoint information
@@ -51,6 +53,8 @@ class Debugger : public PeripheralInterface {
     std::uint32_t record_id;
     // last value
     std::uint32_t last_val;
+    // hit count
+    std::uint32_t hit_count;
   };
 
   // signal handler (C-c)
@@ -63,11 +67,19 @@ class Debugger : public PeripheralInterface {
   bool Eval(std::string_view expr, std::uint32_t &ans);
   // evaluate expression
   bool Eval(std::string_view expr, std::uint32_t &ans, bool record);
+  // delete breakpoint by id, returns false if failed
+  bool DeleteBreak(std::uint32_t id);
+  // delete watchpoint by id, returns false if failed
+  bool DeleteWatch(std::uint32_t id);
 
   // accept user input
   void AcceptCommand();
   // parse command, returns true if need to return from debugger
   bool ParseCommand(std::istream &is);
+  // create a new breakpoint ('break [ADDR]' command)
+  void CreateBreak(std::istream &is);
+  // create a new watchpoint ('watch EXPR' command)
+  void CreateWatch(std::istream &is);
   // delete breakpoint/watchpoint ('delete [N]' command)
   void DeletePoint(std::istream &is);
   // step by machine instructions ('stepi [N]' command)
@@ -86,8 +98,6 @@ class Debugger : public PeripheralInterface {
 
   // reference of emulation core
   Core &core_;
-  // reference of ROM
-  ROM &rom_;
 
   // evaluator
   ExprEvaluator expr_eval_;
@@ -97,12 +107,17 @@ class Debugger : public PeripheralInterface {
   bool dbg_pause_;
   // step count
   int step_count_;
+
   // breakpoint list
   std::unordered_map<std::uint32_t, BreakInfo> breaks_;
+  // hashmap of pc address to breakpoint info reference
+  std::unordered_map<std::uint32_t, BreakInfo *> pc_bp_;
   // watchpoint list
   std::unordered_map<std::uint32_t, WatchInfo> watches_;
   // next breakpoint/watchpoint id
   std::uint32_t next_id_;
+  // current breakpoint info reference (used to re-execute)
+  BreakInfo *cur_bp_;
 };
 
 #endif  // RISKY32_DEBUGGER_DEBUGGER_H_
