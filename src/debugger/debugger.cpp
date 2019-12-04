@@ -1,12 +1,12 @@
 #include "debugger/debugger.h"
 
-#include <unordered_map>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <string>
 #include <cassert>
 #include <cstdlib>
+#include <cctype>
 
 #include "readline/readline.h"
 #include "readline/history.h"
@@ -82,7 +82,7 @@ void PrintHelp() {
                "--- step by N instructions" << std::endl;
   std::cout << "  print/p   [EXPR]    "
                "--- show value of EXPR" << std::endl;
-  std::cout << "  x         EXPR [N]  "
+  std::cout << "  x         N EXPR    "
                "--- examine memory at EXPR" << std::endl;
   std::cout << "  info      ITEM      "
                "--- show information of ITEM" << std::endl;
@@ -138,9 +138,9 @@ void PrintHelp(CommandName cmd) {
       break;
     }
     case CommandName::Examine: {
-      std::cout << "Syntax: x EXPR [N]" << std::endl;
+      std::cout << "Syntax: x N EXPR" << std::endl;
       std::cout << "  Examine N units memory at address EXPR, "
-                   "N defaults to 1, 4 bytes per unit." << std::endl;
+                   "4 bytes per unit." << std::endl;
       break;
     }
     case CommandName::Info: {
@@ -162,11 +162,11 @@ void PrintHelp(CommandName cmd) {
 
 }  // namespace
 
-volatile sig_atomic_t Debugger::pause_ = 0;
+volatile sig_atomic_t Debugger::user_pause_ = 0;
 
 void Debugger::SignalHandler(int sig) {
   assert(sig == SIGINT);
-  pause_ = 1;
+  user_pause_ = 1;
 }
 
 void Debugger::InitSignal() {
@@ -177,6 +177,68 @@ void Debugger::InitSignal() {
   sig_->sa_flags = 0;
   // register sigaction
   sigaction(SIGINT, sig_.get(), nullptr);
+}
+
+bool Debugger::CheckWatchpoints() {
+  for (auto &&it : watches_) {
+    // get watchpoint info
+    auto &info = it.second;
+    // evaluate new value
+    std::uint32_t cur_val;
+    auto ret = expr_eval_.Eval(info.record_id, cur_val);
+    assert(ret);
+    if (cur_val != info.last_val) {
+      // record change
+      std::cout << "watchpoint " << it.first << " hit ($"
+                << info.record_id << ")" << std::endl;
+      std::cout << "  old value: " << info.last_val << std::endl;
+      std::cout << "  new value: " << cur_val << std::endl;
+      // update watchpoint info
+      info.last_val = cur_val;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Debugger::Eval(std::string_view expr, std::uint32_t &ans) {
+  Eval(expr, ans, true);
+}
+
+bool Debugger::Eval(std::string_view expr, std::uint32_t &ans,
+                    bool record) {
+  auto ret = expr_eval_.Eval(expr, ans, record);
+  if (!ret) LogError("invalid exprssion");
+  return ret;
+}
+
+void Debugger::AcceptCommand() {
+  // clear debugger state
+  user_pause_ = 0;
+  step_count_ = -1;
+  dbg_pause_ = false;
+  // enter command line interface
+  bool quit = false;
+  std::istringstream iss;
+  while (!quit) {
+    // read line from terminal
+    auto line = readline(prompt_.data());
+    if (!line) {
+      // EOF, just exit
+      std::exit(0);
+    }
+    if (*line) {
+      // add current line to history
+      add_history(line);
+      // reset string stream
+      iss.str(line);
+      iss.clear();
+      // parse command
+      quit = ParseCommand(iss);
+    }
+    // free line buffer
+    std::free(line);
+  }
 }
 
 bool Debugger::ParseCommand(std::istream &is) {
@@ -209,34 +271,21 @@ bool Debugger::ParseCommand(std::istream &is) {
       break;
     }
     case CommandName::Delete: {
-      //
+      DeletePoint(is);
       break;
     }
     case CommandName::Continue: {
-      pause_ = 0;
       return true;
     }
     case CommandName::StepInst: {
-      // set step count
-      if (is.eof()) {
-        step_count_ = 1;
-      }
-      else {
-        is >> step_count_;
-        if (!is) {
-          LogError("invalid step count");
-          return false;
-        }
-      }
-      // return from debugger
-      return true;
+      return StepByInst(is);
     }
     case CommandName::Print: {
-      // TODO: expression
+      PrintExpr(is);
       break;
     }
     case CommandName::Examine: {
-      // TODO: expression
+      ExamineMem(is);
       break;
     }
     case CommandName::Info: {
@@ -251,15 +300,75 @@ bool Debugger::ParseCommand(std::istream &is) {
   return false;
 }
 
-bool Debugger::Eval(std::string_view expr, std::uint32_t &ans) {
-  Eval(expr, ans, true);
+void Debugger::DeletePoint(std::istream &is) {
+  std::uint32_t n;
+  is >> n;
+  if (!is) {
+    // delete all breakpoints & watchpoints
+    std::cout << "are you sure to delete all "
+                 "breakpoints & watchpoints? [y/n]";
+    if (std::tolower(std::cin.get()) != 'y') return;
+    // TODO
+  }
+  else {
+    // TODO
+  }
 }
 
-bool Debugger::Eval(std::string_view expr, std::uint32_t &ans,
-                    bool record) {
-  auto ret = expr_eval_.Eval(expr, ans, record);
-  if (!ret) LogError("invalid exprssion");
-  return ret;
+bool Debugger::StepByInst(std::istream &is) {
+  // set step count
+  if (is.eof()) {
+    step_count_ = 1;
+  }
+  else {
+    is >> step_count_;
+    if (!is || step_count_ <= 0) {
+      LogError("invalid step count");
+      step_count_ = -1;
+      return false;
+    }
+  }
+  // return from debugger
+  return true;
+}
+
+void Debugger::PrintExpr(std::istream &is) {
+  // get expression
+  std::string expr;
+  if (!std::getline(is, expr)) {
+    LogError("invalid 'EXPR', try 'help print'");
+    return;
+  }
+  // evaluate expression
+  std::uint32_t value, id = expr_eval_.next_id();
+  if (!Eval(expr, value)) return;
+  std::cout << "$" << id << " = " << value << std::endl;
+}
+
+void Debugger::ExamineMem(std::istream &is) {
+  // get parameters
+  std::uint32_t addr, n;
+  std::string expr;
+  is >> n;
+  if (!is || !n) {
+    LogError("invalid count 'N', try 'help x'");
+    return;
+  }
+  if (!std::getline(is, expr)) {
+    LogError("invalid 'EXPR', try 'help x'");
+    return;
+  }
+  if (!Eval(expr, addr, false)) return;
+  // print memory units
+  while (n--) {
+    std::cout << std::hex << std::setfill('0');
+    std::cout << std::setw(8) << addr << ": " << std::setw(2);
+    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
+    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
+    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
+    std::cout << core_.raw_bus()->ReadByte(addr++);
+    std::cout << std::dec << std::endl;
+  }
 }
 
 void Debugger::PrintInfo(std::istream &is) {
@@ -274,44 +383,51 @@ void Debugger::PrintInfo(std::istream &is) {
   // show information
   switch (it->second) {
     case InfoItem::Reg: {
+      // register info
       expr_eval_.PrintRegInfo(std::cout);
       break;
     }
     case InfoItem::CSR: {
+      // CSR info
       expr_eval_.PrintCSRInfo(std::cout);
       break;
     }
     case InfoItem::Break: {
-      // TODO
+      // breakpoint info
+      if (breaks_.empty()) {
+        std::cout << "no breakpoints currently set" << std::endl;
+      }
+      else {
+        std::cout << "number of breakpoints: " << breaks_.size()
+                  << std::endl;
+        for (const auto &it : breaks_) {
+          const auto &info = it.second;
+          std::cout << "  breakpoint #" << it.first << ": pc = "
+                    << std::hex << std::setw(8) << std::setfill('0')
+                    << info.addr << std::dec << std::endl;
+        }
+      }
       break;
     }
     case InfoItem::Watch: {
-      // TODO
+      // watchpoint info
+      if (watches_.empty()) {
+        std::cout << "no watchpoints currently set" << std::endl;
+      }
+      else {
+        std::cout << "number of watchpoints: " << watches_.size()
+                  << std::endl;
+        for (const auto &it : watches_) {
+          const auto &info = it.second;
+          std::cout << "  watchpoint #" << it.first << ": $"
+                    << info.record_id << " = (";
+          expr_eval_.PrintExprInfo(std::cout, info.record_id);
+          std::cout << "), value = " << info.last_val << std::endl;
+        }
+      }
       break;
     }
     default: assert(false);
-  }
-}
-
-void Debugger::ExamineMem(std::istream &is) {
-  // get parameters
-  std::string expr;
-  std::uint32_t addr, n;
-  is >> expr >> n;
-  if (expr.empty()) {
-    LogError("invalid 'EXPR', try 'help x'");
-    return;
-  }
-  if (!Eval(expr, addr, false)) return;
-  if (!is) n = 1;
-  // print memory units
-  while (n--) {
-    std::cout << std::hex << addr << ": ";
-    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
-    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
-    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
-    std::cout << core_.raw_bus()->ReadByte(addr++);
-    std::cout << std::dec << std::endl;
   }
 }
 
@@ -338,36 +454,18 @@ std::uint32_t Debugger::ReadWord(std::uint32_t addr) {
 void Debugger::WriteWord(std::uint32_t addr, std::uint32_t value) {
   if (addr == kAddrBreak) {
     // trigger breakpoint
-    pause_ = 1;
+    dbg_pause_ = true;
   }
 }
 
-void Debugger::AcceptCommand() {
-  // check if is not stepping
-  if (step_count_ > 0) {
-    --step_count_;
-    return;
-  }
-  // enter command line interface
-  bool quit = false;
-  std::istringstream iss;
-  while (!quit) {
-    // read line from terminal
-    auto line = readline(prompt_.data());
-    if (!line) {
-      // EOF, just exit
-      std::exit(0);
-    }
-    if (*line) {
-      // add current line to history
-      add_history(line);
-      // reset string stream
-      iss.str(line);
-      iss.clear();
-      // parse command
-      quit = ParseCommand(iss);
-    }
-    // free line buffer
-    std::free(line);
-  }
+void Debugger::NextCycle() {
+  // check user interrupt or breakpoints
+  if (user_pause_ || dbg_pause_) AcceptCommand();
+  // check watchpoints
+  if (!watches_.empty() && CheckWatchpoints()) AcceptCommand();
+  // check/update step count
+  if (!step_count_) AcceptCommand();
+  if (step_count_ > 0) --step_count_;
+  // next cycle for core
+  core_.NextCycle();
 }
