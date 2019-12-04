@@ -103,7 +103,7 @@ bool PerformSystem(const InstI &inst, CoreState &state) {
 void SystemUnit::ExecuteR(const InstR &inst, CoreState &state) {
   // 'SFENCE.VMA' instruction
   // already checked 'funct3' and 'funct7' in 'Core::Execute'
-  if (!inst.rd) {
+  if (!inst.rd && state.csr().cur_priv() >= kPrivLevelS) {
     // do nothing because there is no TLB
   }
   else {
