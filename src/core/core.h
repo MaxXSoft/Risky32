@@ -24,6 +24,9 @@ class Core {
   void Reset();
   // run a cycle
   void NextCycle();
+  // rewind 1 instruction and then execute specific instruction
+  // (used by debugger)
+  void ReExecute(std::uint32_t inst_data);
 
   // setters
   void set_timer_int(const bool *timer_int) { timer_int_ = timer_int; }
@@ -55,6 +58,8 @@ class Core {
   void InitUnits();
   // dispatch and execute
   void Execute(std::uint32_t inst_data, CoreState &state);
+  // write back
+  void WriteBack(CoreState &state);
 
   // interrupt signals
   const bool *timer_int_, *soft_int_, *ext_int_;

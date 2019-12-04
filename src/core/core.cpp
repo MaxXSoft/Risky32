@@ -122,6 +122,22 @@ void Core::Execute(std::uint32_t inst_data, CoreState &state) {
   }
 }
 
+void Core::WriteBack(CoreState &state) {
+  // handle interrupt & exception
+  if (state.next_pc() & 0b11) {
+    state.RaiseException(kExcInstAddrMisalign, state.next_pc());
+  }
+  state.CheckInterrupt();
+  if (!state.CheckAndClearExcFlag()) {
+    // no exception, perform write back operation
+    state_ = state;
+  }
+  // prepare for next cycle
+  state_.regs(0) = 0;
+  state_.pc() = state.next_pc();
+  csr_.UpdateCSR();
+}
+
 void Core::Reset() {
   state_.Reset();
 }
@@ -141,17 +157,19 @@ void Core::NextCycle() {
     // dispatch and execute
     Execute(inst_data, state);
   }
-  // handle interrupt & exception
-  if (state.next_pc() & 0b11) {
-    state.RaiseException(kExcInstAddrMisalign, state.next_pc());
-  }
-  state.CheckInterrupt();
-  if (!state.CheckAndClearExcFlag()) {
-    // no exception, perform write back operation
-    state_ = state;
-  }
-  // prepare for next cycle
-  state_.regs(0) = 0;
-  state_.pc() = state.next_pc();
-  csr_.UpdateCSR();
+  // perform write back
+  WriteBack(state);
+}
+
+void Core::ReExecute(std::uint32_t inst_data) {
+  // reset MMU state
+  mmu_.set_is_invalid(false);
+  // fetch instruction (dummy)
+  state_.pc() -= 4;
+  auto state = state_;
+  state.next_pc() = state.pc() + 4;
+  // dispatch and execute
+  Execute(inst_data, state);
+  // perform write back
+  WriteBack(state);
 }
