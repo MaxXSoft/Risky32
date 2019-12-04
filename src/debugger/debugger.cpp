@@ -412,9 +412,15 @@ void Debugger::PrintExpr(std::istream &is) {
   std::string expr;
   if (!std::getline(is, expr)) {
     // show last value
-    id = expr_eval_.next_id() - 1;
-    auto ret = expr_eval_.Eval(id, value);
-    assert(ret);
+    if (!expr_eval_.next_id()) {
+      LogError("there is no last value available");
+      return;
+    }
+    else {
+      id = expr_eval_.next_id() - 1;
+      auto ret = expr_eval_.Eval(id, value);
+      assert(ret);
+    }
   }
   else {
     // evaluate expression
@@ -502,7 +508,7 @@ void Debugger::PrintInfo(std::istream &is) {
           const auto &info = it.second;
           std::cout << "  watchpoint #" << it.first << ": $"
                     << info.record_id << " = (";
-          expr_eval_.PrintExprInfo(std::cout, info.record_id);
+          expr_eval_.PrintExpr(std::cout, info.record_id);
           std::cout << "), value = " << info.last_val
                     << "hit_count = " << info.hit_count << std::endl;
         }

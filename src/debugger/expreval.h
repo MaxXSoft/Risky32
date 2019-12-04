@@ -25,8 +25,8 @@ class ExprEvaluator {
   void PrintRegInfo(std::ostream &os);
   // show CSR information
   void PrintCSRInfo(std::ostream &os);
-  // show expression info by specific record id
-  void PrintExprInfo(std::ostream &os, std::uint32_t id);
+  // show expression by specific record id
+  void PrintExpr(std::ostream &os, std::uint32_t id);
 
   // remove specific record
   void RemoveRecord(std::uint32_t id);
