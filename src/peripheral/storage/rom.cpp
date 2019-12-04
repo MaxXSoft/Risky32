@@ -46,26 +46,12 @@ bool ROM::LoadHex(std::string_view file) {
   return true;
 }
 
-std::uint32_t ROM::ReplaceWord(std::uint32_t addr, std::uint32_t value) {
-  assert((addr & 3) == 0);
-  // get original value
-  std::uint32_t word = rom_[addr] | (rom_[addr + 1] << 8);
-  word |= (rom_[addr + 2] << 16) | (rom_[addr + 3] << 24);
-  // write new value
-  rom_[addr] = value & 0xff;
-  rom_[addr + 1] = (value >> 8) & 0xff;
-  rom_[addr + 2] = (value >> 16) & 0xff;
-  rom_[addr + 3] = value >> 24;
-  return word;
-}
-
 std::uint8_t ROM::ReadByte(std::uint32_t addr) {
   return rom_[addr];
 }
 
 void ROM::WriteByte(std::uint32_t addr, std::uint8_t value) {
-  // write byte in ROM is not allowed
-  assert(false);
+  rom_[addr] = value;
 }
 
 std::uint16_t ROM::ReadHalf(std::uint32_t addr) {
@@ -75,8 +61,9 @@ std::uint16_t ROM::ReadHalf(std::uint32_t addr) {
 }
 
 void ROM::WriteHalf(std::uint32_t addr, std::uint16_t value) {
-  // write half word in ROM is not allowed
-  assert(false);
+  assert((addr & 1) == 0);
+  rom_[addr] = value & 0xff;
+  rom_[addr + 1] = value >> 8;
 }
 
 std::uint32_t ROM::ReadWord(std::uint32_t addr) {
@@ -87,6 +74,9 @@ std::uint32_t ROM::ReadWord(std::uint32_t addr) {
 }
 
 void ROM::WriteWord(std::uint32_t addr, std::uint32_t value) {
-  // write word in ROM is not allowed
-  assert(false);
+  assert((addr & 3) == 0);
+  rom_[addr] = value & 0xff;
+  rom_[addr + 1] = (value >> 8) & 0xff;
+  rom_[addr + 2] = (value >> 16) & 0xff;
+  rom_[addr + 3] = value >> 24;
 }
