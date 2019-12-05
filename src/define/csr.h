@@ -35,7 +35,7 @@ struct SStatus {
 };
 
 // mask for supervisor status register
-constexpr std::uint32_t kMaskSStatus    = 0x00000100;
+constexpr std::uint32_t kMaskSStatus      = 0x00000100;
 
 // supervisor address translation and protection register
 struct SATP {
@@ -45,7 +45,7 @@ struct SATP {
 };
 
 // mask for supervisor address translation and protection register
-constexpr std::uint32_t kMaskSATP       = 0x803fffff;
+constexpr std::uint32_t kMaskSATP         = 0x803fffff;
 
 // machine status register
 struct MStatus {
@@ -73,7 +73,7 @@ struct MStatus {
 };
 
 // mask for machine status register
-constexpr std::uint32_t kMaskMStatus    = 0x00001988;
+constexpr std::uint32_t kMaskMStatus      = 0x00001988;
 
 // machine ISA register
 struct MISA {
@@ -100,7 +100,7 @@ struct MIE {
 };
 
 // mask for machine interrupt-enable register
-constexpr std::uint32_t kMaskMIE        = 0x00000888;
+constexpr std::uint32_t kMaskMIE          = 0x00000888;
 
 // machine interrupt-pending register
 struct MIP {
@@ -133,86 +133,86 @@ struct MCause {
 
 
 // privilege levels
-constexpr std::uint32_t kPrivLevelU     = 0b00;
-constexpr std::uint32_t kPrivLevelS     = 0b01;
-constexpr std::uint32_t kPrivLevelH     = 0b10; // unimplemented
-constexpr std::uint32_t kPrivLevelM     = 0b11;
+constexpr std::uint32_t kPrivLevelU       = 0b00;
+constexpr std::uint32_t kPrivLevelS       = 0b01;
+constexpr std::uint32_t kPrivLevelH       = 0b10; // unimplemented
+constexpr std::uint32_t kPrivLevelM       = 0b11;
 
 // user counters
-constexpr std::uint32_t kCSRCycle       = 0xc00;
-constexpr std::uint32_t kCSRTime        = 0xc01;
-constexpr std::uint32_t kCSRInstRet     = 0xc02;
-constexpr std::uint32_t kCSRCycleH      = 0xc80;
-constexpr std::uint32_t kCSRTimeH       = 0xc81;
-constexpr std::uint32_t kCSRInstRetH    = 0xc82;
+constexpr std::uint32_t kCSRCycle         = 0xc00;
+constexpr std::uint32_t kCSRTime          = 0xc01;
+constexpr std::uint32_t kCSRInstRet       = 0xc02;
+constexpr std::uint32_t kCSRCycleH        = 0xc80;
+constexpr std::uint32_t kCSRTimeH         = 0xc81;
+constexpr std::uint32_t kCSRInstRetH      = 0xc82;
 
 // supervisor trap setup
-constexpr std::uint32_t kCSRSStatus     = 0x100;
-constexpr std::uint32_t kCSRSIE         = 0x104;
-constexpr std::uint32_t kCSRSTVec       = 0x105;
-constexpr std::uint32_t kCSRSCounterEn  = 0x106;
+constexpr std::uint32_t kCSRSStatus       = 0x100;
+constexpr std::uint32_t kCSRSIE           = 0x104;
+constexpr std::uint32_t kCSRSTVec         = 0x105;
+constexpr std::uint32_t kCSRSCounterEn    = 0x106;
 
 // supervisor trap handling
-constexpr std::uint32_t kCSRSScratch    = 0x140;
-constexpr std::uint32_t kCSRSEPC        = 0x141;
-constexpr std::uint32_t kCSRSCause      = 0x142;
-constexpr std::uint32_t kCSRSTVal       = 0x143;
-constexpr std::uint32_t kCSRSIP         = 0x144;
+constexpr std::uint32_t kCSRSScratch      = 0x140;
+constexpr std::uint32_t kCSRSEPC          = 0x141;
+constexpr std::uint32_t kCSRSCause        = 0x142;
+constexpr std::uint32_t kCSRSTVal         = 0x143;
+constexpr std::uint32_t kCSRSIP           = 0x144;
 
 // supervisor protection and translation
 constexpr std::uint32_t kCSRSATP        = 0x180;
 
 // machine information registers (read only)
-constexpr std::uint32_t kCSRMVenderId   = 0xf11;
-constexpr std::uint32_t kCSRMArchId     = 0xf12;
-constexpr std::uint32_t kCSRMImpId      = 0xf13;
-constexpr std::uint32_t kCSRMHartId     = 0xf14;
+constexpr std::uint32_t kCSRMVenderId     = 0xf11;
+constexpr std::uint32_t kCSRMArchId       = 0xf12;
+constexpr std::uint32_t kCSRMImpId        = 0xf13;
+constexpr std::uint32_t kCSRMHartId       = 0xf14;
 
 // machine trap setup
-constexpr std::uint32_t kCSRMStatus     = 0x300;
-constexpr std::uint32_t kCSRMISA        = 0x301;
-constexpr std::uint32_t kCSRMEDeleg     = 0x302;
-constexpr std::uint32_t kCSRMIDeleg     = 0x303;
-constexpr std::uint32_t kCSRMIE         = 0x304;
-constexpr std::uint32_t kCSRMTVec       = 0x305;
-constexpr std::uint32_t kCSRMCounterEn  = 0x306;
+constexpr std::uint32_t kCSRMStatus       = 0x300;
+constexpr std::uint32_t kCSRMISA          = 0x301;
+constexpr std::uint32_t kCSRMEDeleg       = 0x302;
+constexpr std::uint32_t kCSRMIDeleg       = 0x303;
+constexpr std::uint32_t kCSRMIE           = 0x304;
+constexpr std::uint32_t kCSRMTVec         = 0x305;
+constexpr std::uint32_t kCSRMCounterEn    = 0x306;
 
 // machine trap handling
-constexpr std::uint32_t kCSRMScratch    = 0x340;
-constexpr std::uint32_t kCSRMEPC        = 0x341;
-constexpr std::uint32_t kCSRMCause      = 0x342;
-constexpr std::uint32_t kCSRMTVal       = 0x343;
-constexpr std::uint32_t kCSRMIP         = 0x344;
+constexpr std::uint32_t kCSRMScratch      = 0x340;
+constexpr std::uint32_t kCSRMEPC          = 0x341;
+constexpr std::uint32_t kCSRMCause        = 0x342;
+constexpr std::uint32_t kCSRMTVal         = 0x343;
+constexpr std::uint32_t kCSRMIP           = 0x344;
 
 // machine memory protection
-constexpr std::uint32_t kCSRPMPCfg0     = 0x3a0;
-constexpr std::uint32_t kCSRPMPCfg1     = 0x3a1;
-constexpr std::uint32_t kCSRPMPCfg2     = 0x3a2;
-constexpr std::uint32_t kCSRPMPCfg3     = 0x3a3;
-constexpr std::uint32_t kCSRPMPAddr0    = 0x3b0;
-constexpr std::uint32_t kCSRPMPAddr1    = 0x3b1;
-constexpr std::uint32_t kCSRPMPAddr2    = 0x3b2;
-constexpr std::uint32_t kCSRPMPAddr3    = 0x3b3;
-constexpr std::uint32_t kCSRPMPAddr4    = 0x3b4;
-constexpr std::uint32_t kCSRPMPAddr5    = 0x3b5;
-constexpr std::uint32_t kCSRPMPAddr6    = 0x3b6;
-constexpr std::uint32_t kCSRPMPAddr7    = 0x3b7;
-constexpr std::uint32_t kCSRPMPAddr8    = 0x3b8;
-constexpr std::uint32_t kCSRPMPAddr9    = 0x3b9;
-constexpr std::uint32_t kCSRPMPAddr10   = 0x3ba;
-constexpr std::uint32_t kCSRPMPAddr11   = 0x3bb;
-constexpr std::uint32_t kCSRPMPAddr12   = 0x3bc;
-constexpr std::uint32_t kCSRPMPAddr13   = 0x3bd;
-constexpr std::uint32_t kCSRPMPAddr14   = 0x3be;
-constexpr std::uint32_t kCSRPMPAddr15   = 0x3bf;
+constexpr std::uint32_t kCSRPMPCfg0       = 0x3a0;
+constexpr std::uint32_t kCSRPMPCfg1       = 0x3a1;
+constexpr std::uint32_t kCSRPMPCfg2       = 0x3a2;
+constexpr std::uint32_t kCSRPMPCfg3       = 0x3a3;
+constexpr std::uint32_t kCSRPMPAddr0      = 0x3b0;
+constexpr std::uint32_t kCSRPMPAddr1      = 0x3b1;
+constexpr std::uint32_t kCSRPMPAddr2      = 0x3b2;
+constexpr std::uint32_t kCSRPMPAddr3      = 0x3b3;
+constexpr std::uint32_t kCSRPMPAddr4      = 0x3b4;
+constexpr std::uint32_t kCSRPMPAddr5      = 0x3b5;
+constexpr std::uint32_t kCSRPMPAddr6      = 0x3b6;
+constexpr std::uint32_t kCSRPMPAddr7      = 0x3b7;
+constexpr std::uint32_t kCSRPMPAddr8      = 0x3b8;
+constexpr std::uint32_t kCSRPMPAddr9      = 0x3b9;
+constexpr std::uint32_t kCSRPMPAddr10     = 0x3ba;
+constexpr std::uint32_t kCSRPMPAddr11     = 0x3bb;
+constexpr std::uint32_t kCSRPMPAddr12     = 0x3bc;
+constexpr std::uint32_t kCSRPMPAddr13     = 0x3bd;
+constexpr std::uint32_t kCSRPMPAddr14     = 0x3be;
+constexpr std::uint32_t kCSRPMPAddr15     = 0x3bf;
 
 // machine counters
-constexpr std::uint32_t kMCycle         = 0xb00;
-constexpr std::uint32_t kMInstRet       = 0xb02;
-constexpr std::uint32_t kMCycleH        = 0xb80;
-constexpr std::uint32_t kMInstRetH      = 0xb82;
+constexpr std::uint32_t kCSRMCycle        = 0xb00;
+constexpr std::uint32_t kCSRMInstRet      = 0xb02;
+constexpr std::uint32_t kCSRMCycleH       = 0xb80;
+constexpr std::uint32_t kCSRMInstRetH     = 0xb82;
 
 // machine counter setup
-constexpr std::uint32_t kMCountInhibit  = 0x320;
+constexpr std::uint32_t kCSRMCountInhibit = 0x320;
 
 #endif  // RISKY32_DEFINE_CSR_H_
