@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string_view>
 #include <cstring>
 #include <cstddef>
 
@@ -29,6 +30,7 @@ void PrintVersion() {
 
 int main(int argc, const char *argv[]) {
   bool debug = false;
+  std::string_view file;
 
   // check argument
   if (argc < 2) {
@@ -36,12 +38,20 @@ int main(int argc, const char *argv[]) {
     cerr << "usage: " << argv[0] << " [-v|-d] binary" << endl;
     return 1;
   }
-  else if (!strcmp(argv[1], "-v")) {
-    PrintVersion();
-    return 0;
-  }
-  else if (!strcmp(argv[1], "-d")) {
-    debug = true;
+  else {
+    // scan command line arguments
+    for (int i = 1; i < argc; ++i) {
+      if (!strcmp(argv[i], "-v")) {
+        PrintVersion();
+        return 0;
+      }
+      else if (!strcmp(argv[i], "-d")) {
+        debug = true;
+      }
+      else if (argv[i][0] != '-' && file.empty()) {
+        file = argv[i];
+      }
+    }
   }
 
   // create peripherals
@@ -49,8 +59,8 @@ int main(int argc, const char *argv[]) {
   auto ram = std::make_shared<RAM>(65536);
   auto gpio = std::make_shared<GPIO>();
   auto clint = std::make_shared<CLINT>();
-  if (!rom->LoadBinary(argv[1])) {
-    cerr << "error: failed to load file '" << argv[1] << "'" << endl;
+  if (!rom->LoadBinary(file)) {
+    cerr << "error: failed to load file '" << file << "'" << endl;
     return 1;
   }
 

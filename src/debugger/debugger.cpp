@@ -206,7 +206,7 @@ bool Debugger::CheckWatchpoints() {
 }
 
 bool Debugger::Eval(std::string_view expr, std::uint32_t &ans) {
-  Eval(expr, ans, true);
+  return Eval(expr, ans, true);
 }
 
 bool Debugger::Eval(std::string_view expr, std::uint32_t &ans,
