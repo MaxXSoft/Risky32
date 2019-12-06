@@ -40,19 +40,29 @@ class ExprEvaluator {
  private:
   enum class Token {
     End, Error, Char,
-    Num, Id, RegName, ValRef,
+    Num, RegName, ValRef,
     Operator,
   };
 
   enum class Operator {
     Add, Sub, Mul, Div, Mod,
-    And, Or, Not, Xor,
+    And, Or, Not, Xor, Shl, Shr,
     LogicAnd, LogicOr, LogicNot,
     Equal, NotEqual,
     LessThan, LessEqual, GreaterThan, GreaterEqual,
   };
 
+  // lexer
+  void NextChar() { iss_ >> last_char_; }
   Token NextToken();
+  Token HandleNum();
+  Token HandleRegRef();
+  Token HandleOperator();
+
+  // parser
+  bool ParseBinary(std::uint32_t &ans);
+  bool ParseUnary(std::uint32_t &ans);
+  bool ParseValue(std::uint32_t &ans);
 
   // reference of emulation core
   Core &core_;
@@ -60,16 +70,18 @@ class ExprEvaluator {
   std::unordered_map<std::uint32_t, std::string> records_;
   // next record id
   std::uint32_t next_id_;
+
   // current expression
-  std::istringstream iss;
+  std::istringstream iss_;
   // last character
   char last_char_;
-  // last number/valref
-  std::uint32_t last_num_;
-  // last id/regname
-  std::string last_str_;
+  // last character value
+  char char_val_;
+  // last number/regname/valref
+  std::uint32_t num_val_;
   // last operator
-  Operator last_op_;
+  Operator op_val_;
+
   // current token
   Token cur_token_;
 };
