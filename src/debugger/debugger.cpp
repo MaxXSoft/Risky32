@@ -181,6 +181,9 @@ void Debugger::InitSignal() {
   sig_->sa_flags = 0;
   // register sigaction
   sigaction(SIGINT, sig_.get(), nullptr);
+  // show message
+  std::cout << "Debugger is ready, try 'help' to see command list."
+            << std::endl;
 }
 
 bool Debugger::CheckWatchpoints() {

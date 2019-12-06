@@ -78,6 +78,8 @@ int main(int argc, const char *argv[]) {
   core.Reset();
 
   if (debug) {
+    PrintVersion();
+    std::cout << std::endl;
     // run debugger
     auto debugger = make_shared<Debugger>(core);
     bus->AddPeripheral(kMMIOAddrDebugger, debugger);
