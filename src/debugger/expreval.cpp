@@ -333,7 +333,10 @@ bool ExprEvaluator::ParseValue(std::uint32_t &ans) {
       // parse inner binary expression
       if (!ParseBinary(ans)) return false;
       // check ')'
-      if (char_val_ != ')') return LogParserError("expected ')'");
+      if (cur_token_ != Token::Char || char_val_ != ')') {
+        return LogParserError("expected ')'");
+      }
+      break;
     }
     default: return LogParserError("invalid value");
   }
