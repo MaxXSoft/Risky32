@@ -122,7 +122,7 @@ ExprEvaluator::Token ExprEvaluator::NextToken() {
   // skip spaces
   while (!iss_.eof() && std::isspace(last_char_)) NextChar();
   // end of stream
-  if (iss_.eof()) return Token::End;
+  if (iss_.eof()) return cur_token_ = Token::End;
   // numbers
   if (std::isdigit(last_char_)) return HandleNum();
   // register name or value reference
@@ -144,13 +144,13 @@ ExprEvaluator::Token ExprEvaluator::HandleNum() {
     if (std::tolower(last_char_) == 'x') {
       // is hexadecimal
       is_hex = true;
+      NextChar();
     }
     else if (!std::isdigit(last_char_)) {
       // just zero
       num_val_ = 0;
       return cur_token_ = Token::Num;
     }
-    NextChar();
   }
   // read number string
   while (!iss_.eof() && std::isxdigit(last_char_)) {

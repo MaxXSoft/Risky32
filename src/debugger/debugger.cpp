@@ -488,7 +488,7 @@ void Debugger::PrintInfo(std::istream &is) {
                   << std::endl;
         for (const auto &it : breaks_) {
           const auto &info = it.second;
-          std::cout << "  breakpoint #" << it.first << ": pc = "
+          std::cout << "  breakpoint #" << it.first << ": pc = 0x"
                     << std::hex << std::setw(8) << std::setfill('0')
                     << info.addr << std::dec << ", hit_count = "
                     << info.hit_count << std::endl;
@@ -550,7 +550,8 @@ void Debugger::WriteWord(std::uint32_t addr, std::uint32_t value) {
     // update hit count
     ++it->second->hit_count;
     // show message
-    std::cout << "breakpoint hit, pc = " << it->first << std::endl;
+    std::cout << "breakpoint hit, pc = 0x" << std::hex << std::setw(8)
+              << std::setfill('0') << it->first << std::endl;
   }
 }
 
