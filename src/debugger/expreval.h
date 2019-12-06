@@ -65,6 +65,8 @@ class ExprEvaluator {
   bool ParseValue(std::uint32_t &ans);
 
   // helper functions
+  Token LogLexerError(std::string_view msg);
+  bool LogParserError(std::string_view msg);
   std::uint32_t GetOpPrec(Operator op);
   std::uint32_t CalcByOperator(Operator op, std::uint32_t lhs,
                                std::uint32_t rhs);

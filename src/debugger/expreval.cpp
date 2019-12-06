@@ -1,5 +1,6 @@
 #include "debugger/expreval.h"
 
+#include <iostream>
 #include <iomanip>
 #include <stack>
 #include <utility>
@@ -23,10 +24,10 @@ value   ::= NUM | REG_NAME | '(' binary ')'
 
 // name of all GPRs in 'info reg' command
 constexpr const char *kRegNames[] = {
-  "zero", "ra", "sp",   "gp",   "tp", "t0", "t1", "t2",
-  "fp",   "s1", "a0",   "a1",   "a2", "a3", "a4", "a5",
-  "a6",   "a7", "s2",   "s3",   "s4", "s5", "s6", "s7",
-  "s8",   "s9", "s10",  "s11",  "t3", "t4", "t5", "t6",
+  "ra", "sp",   "gp",   "tp", "t0", "t1", "t2", "fp",
+  "s1", "a0",   "a1",   "a2", "a3", "a4", "a5", "a6",
+  "a7", "s2",   "s3",   "s4", "s5", "s6", "s7", "s8",
+  "s9", "s10",  "s11",  "t3", "t4", "t5", "t6",
 };
 
 // name of all CSRs in 'info csr' command
@@ -158,7 +159,8 @@ ExprEvaluator::Token ExprEvaluator::HandleNum() {
   // convert to number
   char *end_pos;
   num_val_ = std::strtol(num.data(), &end_pos, is_hex ? 16 : 10);
-  return cur_token_ = (*end_pos ? Token::Error : Token::Num);
+  if (*end_pos) return LogLexerError("invalid number literal");
+  return cur_token_ = Token::Num;
 }
 
 ExprEvaluator::Token ExprEvaluator::HandleRegRef() {
@@ -173,7 +175,9 @@ ExprEvaluator::Token ExprEvaluator::HandleRegRef() {
     }
     // get register address
     auto it = kRegCSRMap.find(ref);
-    if (it == kRegCSRMap.end()) return cur_token_ = Token::Error;
+    if (it == kRegCSRMap.end()) {
+      return LogLexerError("invalid register name");
+    }
     num_val_ = it->second;
     return cur_token_ = Token::RegName;
   }
@@ -187,12 +191,12 @@ ExprEvaluator::Token ExprEvaluator::HandleRegRef() {
     char *end_pos;
     num_val_ = std::strtol(ref.data(), &end_pos, 10);
     if (*end_pos || records_.find(num_val_) == records_.end()) {
-      return cur_token_ = Token::Error;
+      return LogLexerError("invalid value reference");
     }
     return cur_token_ = Token::ValRef;
   }
   else {
-    return cur_token_ = Token::Error;
+    return LogLexerError("invalid '$' expression");
   }
 }
 
@@ -210,7 +214,7 @@ ExprEvaluator::Token ExprEvaluator::HandleOperator() {
       return cur_token_ = Token::Operator;
     }
   }
-  return cur_token_ = Token::Error;
+  return LogLexerError("invalid operator");
 }
 
 bool ExprEvaluator::ParseBinary(std::uint32_t &ans) {
@@ -270,11 +274,11 @@ bool ExprEvaluator::ParseUnary(std::uint32_t &ans) {
       case Operator::LogicNot: ans = !operand; break;
       case Operator::Not: ans = ~operand; break;
       case Operator::Mul: {
-        if (operand & 0b11) return false;
+        if (operand & 0b11) return LogParserError("address misaligned");
         ans = core_.raw_bus()->ReadWord(operand);
         break;
       }
-      default: return false;
+      default: return LogParserError("invalid unary operator");
     }
     return true;
   }
@@ -306,7 +310,8 @@ bool ExprEvaluator::ParseValue(std::uint32_t &ans) {
       auto last_char = last_char_;
       auto cur_token = cur_token_;
       // evaluate record
-      if (!Eval(num_val_, ans)) return false;
+      auto ret = Eval(num_val_, ans);
+      assert(ret);
       // restore current state
       iss_ = std::move(iss);
       last_char_ = last_char;
@@ -315,14 +320,14 @@ bool ExprEvaluator::ParseValue(std::uint32_t &ans) {
     }
     case Token::Char: {
       // check & eat '('
-      if (char_val_ != '(') return false;
+      if (char_val_ != '(') return LogParserError("expected '('");
       NextToken();
       // parse inner binary expression
       if (!ParseBinary(ans)) return false;
       // check ')'
-      if (char_val_ != ')') return false;
+      if (char_val_ != ')') return LogParserError("expected ')'");
     }
-    default: return false;
+    default: return LogParserError("invalid value");
   }
   NextToken();
   return true;
@@ -354,6 +359,16 @@ std::uint32_t ExprEvaluator::CalcByOperator(Operator op, std::uint32_t lhs,
     case Operator::GreaterEqual:  return lhs >= rhs;
     default: return 0;
   }
+}
+
+ExprEvaluator::Token ExprEvaluator::LogLexerError(std::string_view msg) {
+  std::cout << "ERROR (expr.lexer): " << msg << std::endl;
+  return cur_token_ = Token::Error;
+}
+
+bool ExprEvaluator::LogParserError(std::string_view msg) {
+  std::cout << "ERROR (expr.parser): " << msg << std::endl;
+  return false;
 }
 
 bool ExprEvaluator::Eval(std::string_view expr, std::uint32_t &ans) {
@@ -388,8 +403,8 @@ void ExprEvaluator::PrintRegInfo(std::ostream &os) {
     assert(it != kRegCSRMap.end());
     // print value of register
     auto val = core_.reg(it->second);
-    os << std::setw(5) << std::left << i << std::hex << std::setw(8)
-       << std::setfill('0') << std::right << val << ' ';
+    os << std::setw(5) << std::setfill(' ') << std::left << i << std::hex
+       << std::setw(8) << std::setfill('0') << std::right << val << ' ';
     // print new line
     if (count++ == 3) {
       count = 0;
@@ -397,8 +412,9 @@ void ExprEvaluator::PrintRegInfo(std::ostream &os) {
     }
   }
   // print pc
-  os << std::setw(5) << std::left << "pc" << std::hex << std::setw(8)
-     << std::setfill('0') << std::right << core_.pc() << ' ' << std::endl;
+  os << std::setw(5) << std::setfill(' ') << std::left << "pc" << std::hex
+     << std::setw(8) << std::setfill('0') << std::right << core_.pc()
+     << std::endl;
 }
 
 void ExprEvaluator::PrintCSRInfo(std::ostream &os) {
@@ -409,8 +425,8 @@ void ExprEvaluator::PrintCSRInfo(std::ostream &os) {
     assert(it != kRegCSRMap.end());
     // print value of CSR
     auto val = core_.csr().ReadDataForce(it->second);
-    os << std::setw(10) << std::left << i << std::hex << std::setw(8)
-       << std::setfill('0') << std::right << val << ' ';
+    os << std::setw(10) << std::setfill(' ') << std::left << i << std::hex
+       << std::setw(8) << std::setfill('0') << std::right << val << ' ';
     // print new line
     if (count++ == 2) {
       count = 0;
