@@ -64,7 +64,7 @@ inline CommandName GetCommandName(std::string_view cmd) {
 
 // print error message
 inline void LogError(std::string_view msg) {
-  std::cout << "ERROR: " << msg << std::endl;
+  std::cout << "ERROR (debugger): " << msg << std::endl;
 }
 
 // display help message
