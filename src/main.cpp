@@ -30,7 +30,7 @@ void PrintVersion() {
 
 int main(int argc, const char *argv[]) {
   bool debug = false;
-  std::string_view file;
+  string_view file;
 
   // check argument
   if (argc < 2) {
@@ -55,17 +55,17 @@ int main(int argc, const char *argv[]) {
   }
 
   // create peripherals
-  auto rom = std::make_shared<ROM>();
-  auto ram = std::make_shared<RAM>(65536);
-  auto gpio = std::make_shared<GPIO>();
-  auto clint = std::make_shared<CLINT>();
+  auto rom = make_shared<ROM>();
+  auto ram = make_shared<RAM>(65536);
+  auto gpio = make_shared<GPIO>();
+  auto clint = make_shared<CLINT>();
   if (!rom->LoadBinary(file)) {
     cerr << "error: failed to load file '" << file << "'" << endl;
     return 1;
   }
 
   // initialize system bus
-  auto bus = std::make_shared<Bus>();
+  auto bus = make_shared<Bus>();
   bus->AddPeripheral(kMMIOAddrROM, rom);
   bus->AddPeripheral(kMMIOAddrRAM, ram);
   bus->AddPeripheral(kMMIOAddrGPIO, gpio);
@@ -79,7 +79,7 @@ int main(int argc, const char *argv[]) {
 
   if (debug) {
     // run debugger
-    auto debugger = std::make_shared<Debugger>(core);
+    auto debugger = make_shared<Debugger>(core);
     bus->AddPeripheral(kMMIOAddrDebugger, debugger);
     while (!gpio->halt()) {
       clint->UpdateTimer();
