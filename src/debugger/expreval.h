@@ -35,7 +35,7 @@ class ExprEvaluator {
 
   // getters
   // next record id
-  std::uint32_t next_id() const { return records_.size(); }
+  std::uint32_t next_id() const { return next_id_; }
 
  private:
   enum class Token {
