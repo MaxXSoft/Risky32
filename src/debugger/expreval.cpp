@@ -398,8 +398,11 @@ bool ExprEvaluator::Eval(std::string_view expr, std::uint32_t &ans,
   if (!Parse(ans)) return false;
   // record expression
   if (record) {
+    // trim expression string
     expr.remove_prefix(std::min(expr.find_first_not_of(" "), expr.size()));
-    expr.remove_suffix(std::min(expr.find_last_not_of(" "), expr.size()));
+    auto pos = expr.find_last_not_of(" ");
+    if (pos != expr.npos) expr.remove_suffix(expr.size() - pos - 1);
+    // store to record
     records_.insert({next_id_++, {expr.data(), expr.size()}});
   }
   return true;
