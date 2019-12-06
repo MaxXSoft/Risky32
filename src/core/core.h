@@ -49,7 +49,9 @@ class Core {
   // exclusive monitor
   ExclusiveMonitor &exc_mon() { return exc_mon_; }
   // value of specific register
-  std::uint32_t reg(std::size_t addr) { return state_.regs(addr); }
+  std::uint32_t regs(std::size_t addr) {
+    return addr == 32 ? state_.pc() : state_.regs(addr);
+  }
   // value of program counter
   std::uint32_t pc() { return state_.pc(); }
 
