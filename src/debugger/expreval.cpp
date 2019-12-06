@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <stack>
 #include <utility>
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstdlib>
@@ -159,7 +160,7 @@ ExprEvaluator::Token ExprEvaluator::HandleNum() {
   }
   // convert to number
   char *end_pos;
-  num_val_ = std::strtol(num.data(), &end_pos, is_hex ? 16 : 10);
+  num_val_ = std::strtol(num.c_str(), &end_pos, is_hex ? 16 : 10);
   if (*end_pos) return LogLexerError("invalid number literal");
   return cur_token_ = Token::Num;
 }
@@ -190,7 +191,7 @@ ExprEvaluator::Token ExprEvaluator::HandleRegRef() {
     }
     // convert to number
     char *end_pos;
-    num_val_ = std::strtol(ref.data(), &end_pos, 10);
+    num_val_ = std::strtol(ref.c_str(), &end_pos, 10);
     if (*end_pos || records_.find(num_val_) == records_.end()) {
       return LogLexerError("invalid value reference");
     }
@@ -389,14 +390,18 @@ bool ExprEvaluator::Eval(std::string_view expr, std::uint32_t &ans) {
 bool ExprEvaluator::Eval(std::string_view expr, std::uint32_t &ans,
                          bool record) {
   // reset string stream
-  iss_.str(expr.data());
+  iss_.str({expr.data(), expr.size()});
   iss_.clear();
   last_char_ = ' ';
   // call lexer & parser
   NextToken();
   if (!Parse(ans)) return false;
   // record expression
-  if (record) records_.insert({next_id_++, expr.data()});
+  if (record) {
+    expr.remove_prefix(std::min(expr.find_first_not_of(" "), expr.size()));
+    expr.remove_suffix(std::min(expr.find_last_not_of(" "), expr.size()));
+    records_.insert({next_id_++, {expr.data(), expr.size()}});
+  }
   return true;
 }
 
