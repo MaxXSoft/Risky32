@@ -2,6 +2,7 @@
 
 #include <iomanip>
 #include <stack>
+#include <utility>
 #include <cassert>
 #include <cctype>
 #include <cstdlib>
@@ -213,15 +214,146 @@ ExprEvaluator::Token ExprEvaluator::HandleOperator() {
 }
 
 bool ExprEvaluator::ParseBinary(std::uint32_t &ans) {
-  //
+  std::stack<std::uint32_t> oprs;
+  std::stack<Operator> ops;
+  std::uint32_t val;
+  // get the first value
+  if (!ParseUnary(val)) return false;
+  oprs.push(val);
+  // calculate using stack
+  while (cur_token_ == Token::Operator) {
+    // get operator
+    auto op = op_val_;
+    if (kOpPrec[static_cast<int>(op)] < 0) break;
+    NextToken();
+    // handle operator
+    while (!ops.empty() && GetOpPrec(ops.top()) >= GetOpPrec(op)) {
+      // get current operator & operand
+      auto cur_op = ops.top();
+      ops.pop();
+      auto rhs = oprs.top();
+      oprs.pop();
+      auto lhs = oprs.top();
+      oprs.pop();
+      // calculate
+      oprs.push(CalcByOperator(cur_op, lhs, rhs));
+    }
+    // push & get next value
+    ops.push(op);
+    if (!ParseUnary(val)) return false;
+    oprs.push(val);
+  }
+  // clear stacks
+  while (!ops.empty()) {
+    auto cur_op = ops.top();
+    ops.pop();
+    auto rhs = oprs.top();
+    oprs.pop();
+    auto lhs = oprs.top();
+    oprs.pop();
+    oprs.push(CalcByOperator(cur_op, lhs, rhs));
+  }
+  return oprs.top();
 }
 
 bool ExprEvaluator::ParseUnary(std::uint32_t &ans) {
-  //
+  // check if need to get operator
+  if (cur_token_ == Token::Operator) {
+    auto op = op_val_;
+    // get operand
+    std::uint32_t operand;
+    if (!ParseUnary(operand)) return false;
+    // calculate
+    switch (op) {
+      case Operator::Add: ans = operand; break;
+      case Operator::Sub: ans = -operand; break;
+      case Operator::LogicNot: ans = !operand; break;
+      case Operator::Not: ans = ~operand; break;
+      case Operator::Mul: {
+        if (operand & 0b11) return false;
+        ans = core_.raw_bus()->ReadWord(operand);
+        break;
+      }
+      default: return false;
+    }
+    return true;
+  }
+  else {
+    return ParseValue(ans);
+  }
 }
 
 bool ExprEvaluator::ParseValue(std::uint32_t &ans) {
-  //
+  switch (cur_token_) {
+    case Token::Num: {
+      // just number
+      ans = num_val_;
+      break;
+    }
+    case Token::RegName: {
+      // get GPR/CSR value from core
+      if (num_val_ < 32) {
+        ans = core_.reg(num_val_);
+      }
+      else {
+        ans = core_.csr().ReadDataForce(num_val_);
+      }
+      break;
+    }
+    case Token::ValRef: {
+      // store current state
+      auto iss = std::move(iss_);
+      auto last_char = last_char_;
+      auto cur_token = cur_token_;
+      // evaluate record
+      if (!Eval(num_val_, ans)) return false;
+      // restore current state
+      iss_ = std::move(iss);
+      last_char_ = last_char;
+      cur_token_ = cur_token;
+      break;
+    }
+    case Token::Char: {
+      // check & eat '('
+      if (char_val_ != '(') return false;
+      NextToken();
+      // parse inner binary expression
+      if (!ParseBinary(ans)) return false;
+      // check ')'
+      if (char_val_ != ')') return false;
+    }
+    default: return false;
+  }
+  NextToken();
+  return true;
+}
+
+std::uint32_t ExprEvaluator::GetOpPrec(Operator op) {
+  return kOpPrec[static_cast<int>(op)];
+}
+
+std::uint32_t ExprEvaluator::CalcByOperator(Operator op, std::uint32_t lhs,
+                                            std::uint32_t rhs) {
+  switch (op) {
+    case Operator::Add:           return lhs + rhs;
+    case Operator::Sub:           return lhs - rhs;
+    case Operator::Mul:           return lhs * rhs;
+    case Operator::Div:           return lhs / rhs;
+    case Operator::And:           return lhs & rhs;
+    case Operator::Or:            return lhs | rhs;
+    case Operator::Xor:           return lhs ^ rhs;
+    case Operator::Shl:           return lhs << rhs;
+    case Operator::Shr:           return lhs >> rhs;
+    case Operator::LogicAnd:      return lhs && rhs;
+    case Operator::LogicOr:       return lhs || rhs;
+    case Operator::Equal:         return lhs == rhs;
+    case Operator::NotEqual:      return lhs != rhs;
+    case Operator::LessThan:      return lhs < rhs;
+    case Operator::LessEqual:     return lhs <= rhs;
+    case Operator::GreaterThan:   return lhs > rhs;
+    case Operator::GreaterEqual:  return lhs >= rhs;
+    default: return 0;
+  }
 }
 
 bool ExprEvaluator::Eval(std::string_view expr, std::uint32_t &ans) {

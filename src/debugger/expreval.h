@@ -64,6 +64,11 @@ class ExprEvaluator {
   bool ParseUnary(std::uint32_t &ans);
   bool ParseValue(std::uint32_t &ans);
 
+  // helper functions
+  std::uint32_t GetOpPrec(Operator op);
+  std::uint32_t CalcByOperator(Operator op, std::uint32_t lhs,
+                               std::uint32_t rhs);
+
   // reference of emulation core
   Core &core_;
   // all stored records
