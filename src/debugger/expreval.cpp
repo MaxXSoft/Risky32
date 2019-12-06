@@ -27,7 +27,7 @@ constexpr const char *kRegNames[] = {
   "ra", "sp",   "gp",   "tp", "t0", "t1", "t2", "fp",
   "s1", "a0",   "a1",   "a2", "a3", "a4", "a5", "a6",
   "a7", "s2",   "s3",   "s4", "s5", "s6", "s7", "s8",
-  "s9", "s10",  "s11",  "t3", "t4", "t5", "t6",
+  "s9", "s10",  "s11",  "t3", "t4", "t5", "t6", "pc",
 };
 
 // name of all CSRs in 'info csr' command
@@ -57,6 +57,7 @@ const std::unordered_map<std::string_view, std::uint32_t> kRegCSRMap = {
   {"x26", 26}, {"s10", 26},         {"x27", 27}, {"s11", 27},
   {"x28", 28}, {"t3", 28},          {"x29", 29}, {"t4", 29},
   {"x30", 30}, {"t5", 30},          {"x31", 31}, {"t6", 31},
+  {"pc", 32},
   // U-mode CSRs
   {"cycle", kCSRCycle}, {"instret", kCSRInstRet},
   {"cycleh", kCSRCycleH}, {"instreth", kCSRInstRetH},
@@ -217,6 +218,10 @@ ExprEvaluator::Token ExprEvaluator::HandleOperator() {
   return LogLexerError("invalid operator");
 }
 
+bool ExprEvaluator::Parse(std::uint32_t &ans) {
+  return cur_token_ == Token::End ? false : ParseBinary(ans);
+}
+
 bool ExprEvaluator::ParseBinary(std::uint32_t &ans) {
   std::stack<std::uint32_t> oprs;
   std::stack<Operator> ops;
@@ -297,7 +302,7 @@ bool ExprEvaluator::ParseValue(std::uint32_t &ans) {
     case Token::RegName: {
       // get GPR/CSR value from core
       if (num_val_ < 32) {
-        ans = core_.reg(num_val_);
+        ans = core_.regs(num_val_);
       }
       else {
         ans = core_.csr().ReadDataForce(num_val_);
@@ -383,7 +388,7 @@ bool ExprEvaluator::Eval(std::string_view expr, std::uint32_t &ans,
   last_char_ = ' ';
   // call lexer & parser
   NextToken();
-  if (!ParseBinary(ans)) return false;
+  if (!Parse(ans)) return false;
   // record expression
   if (record) records_.insert({next_id_++, expr.data()});
   return true;
@@ -402,19 +407,16 @@ void ExprEvaluator::PrintRegInfo(std::ostream &os) {
     auto it = kRegCSRMap.find(i);
     assert(it != kRegCSRMap.end());
     // print value of register
-    auto val = core_.reg(it->second);
-    os << std::setw(5) << std::setfill(' ') << std::left << i << std::hex
-       << std::setw(8) << std::setfill('0') << std::right << val << ' ';
+    auto val = core_.regs(it->second);
+    os << std::setw(4) << std::setfill(' ') << std::left << i << std::hex
+       << std::setw(8) << std::setfill('0') << std::right << val << "   ";
     // print new line
     if (count++ == 3) {
       count = 0;
       os << std::endl;
     }
   }
-  // print pc
-  os << std::setw(5) << std::setfill(' ') << std::left << "pc" << std::hex
-     << std::setw(8) << std::setfill('0') << std::right << core_.pc()
-     << std::endl;
+  if (count) os << std::endl;
 }
 
 void ExprEvaluator::PrintCSRInfo(std::ostream &os) {
@@ -426,7 +428,7 @@ void ExprEvaluator::PrintCSRInfo(std::ostream &os) {
     // print value of CSR
     auto val = core_.csr().ReadDataForce(it->second);
     os << std::setw(10) << std::setfill(' ') << std::left << i << std::hex
-       << std::setw(8) << std::setfill('0') << std::right << val << ' ';
+       << std::setw(8) << std::setfill('0') << std::right << val << "   ";
     // print new line
     if (count++ == 2) {
       count = 0;

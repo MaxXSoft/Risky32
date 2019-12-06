@@ -60,6 +60,7 @@ class ExprEvaluator {
   Token HandleOperator();
 
   // parser
+  bool Parse(std::uint32_t &ans);
   bool ParseBinary(std::uint32_t &ans);
   bool ParseUnary(std::uint32_t &ans);
   bool ParseValue(std::uint32_t &ans);
