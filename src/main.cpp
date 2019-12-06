@@ -8,6 +8,7 @@
 #include "peripheral/interrupt/clint.h"
 #include "peripheral/storage/ram.h"
 #include "peripheral/storage/rom.h"
+#include "debugger/debugger.h"
 
 #include "define/mmio.h"
 #include "version.h"
@@ -18,7 +19,7 @@ namespace {
 
 void PrintVersion() {
   cout << APP_NAME << " version " << APP_VERSION << endl;
-  cout << "A simple RISC-V simulator written in C++." << endl;
+  cout << "A simple RISC-V emulator written in C++." << endl;
   cout << endl;
   cout << "Copyright (C) 2010-2019 MaxXing, MaxXSoft. License GPLv3.";
   cout << endl;
@@ -27,15 +28,20 @@ void PrintVersion() {
 }  // namespace
 
 int main(int argc, const char *argv[]) {
+  bool debug = false;
+
   // check argument
   if (argc < 2) {
     cerr << "error: invalid argument" << endl;
-    cerr << "usage: " << argv[0] << " [-v] binary" << endl;
+    cerr << "usage: " << argv[0] << " [-v|-d] binary" << endl;
     return 1;
   }
   else if (!strcmp(argv[1], "-v")) {
     PrintVersion();
     return 0;
+  }
+  else if (!strcmp(argv[1], "-d")) {
+    debug = true;
   }
 
   // create peripherals
@@ -61,10 +67,22 @@ int main(int argc, const char *argv[]) {
   core.set_soft_int(clint->soft_int());
   core.Reset();
 
-  // run emulation
-  while (!gpio->halt()) {
-    core.NextCycle();
-    clint->UpdateTimer();
+  if (debug) {
+    // run debugger
+    auto debugger = std::make_shared<Debugger>(core);
+    bus->AddPeripheral(kMMIOAddrDebugger, debugger);
+    while (!gpio->halt()) {
+      clint->UpdateTimer();
+      debugger->NextCycle();
+    }
   }
+  else {
+    // run emulation
+    while (!gpio->halt()) {
+      clint->UpdateTimer();
+      core.NextCycle();
+    }
+  }
+
   return 0;
 }
