@@ -250,6 +250,7 @@ void Debugger::AcceptCommand() {
   bool quit = false;
   std::istringstream iss;
   while (!quit) {
+    std::cout << std::endl;
     // read line from terminal
     auto line = readline(prompt_.data());
     if (!line) {
@@ -332,12 +333,18 @@ bool Debugger::ParseCommand(std::istream &is) {
 
 void Debugger::CreateBreak(std::istream &is) {
   // get address of breakpoint
+  std::string expr;
   std::uint32_t addr;
-  is >> addr;
   if (!is) {
     addr = core_.pc();
   }
-  else if (addr & 0b11) {
+  else {
+    if (!std::getline(is, expr) || !Eval(expr, addr, false)) {
+      LogError("invalid address");
+      return;
+    }
+  }
+  if (addr & 0b11) {
     LogError("address misaligned, invalid breakpoint");
     return;
   }
@@ -384,7 +391,10 @@ void Debugger::DeletePoint(std::istream &is) {
     // get id from input
     std::uint32_t n;
     is >> n;
-    if (!is) LogError("invalid breakpoint/watchpoint id");
+    if (!is) {
+      LogError("invalid breakpoint/watchpoint id");
+      return;
+    }
     // delete point by id
     if (!DeleteBreak(n) && !DeleteWatch(n)) {
       LogError("breakpoint/watchpoint not found");
