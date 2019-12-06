@@ -18,7 +18,7 @@ class Debugger : public PeripheralInterface {
  public:
   Debugger(Core &core)
       : core_(core), expr_eval_(core), prompt_("risky32> "),
-        dbg_pause_(false), step_count_(-1), next_id_(0), cur_bp_(nullptr) {
+        dbg_pause_(true), step_count_(-1), next_id_(0), cur_bp_(nullptr) {
     InitSignal();
   }
 

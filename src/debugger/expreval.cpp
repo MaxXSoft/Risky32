@@ -170,7 +170,7 @@ ExprEvaluator::Token ExprEvaluator::HandleRegRef() {
   NextChar();
   if (std::isalpha(last_char_)) {
     // get register name
-    while (iss_.eof() && std::isalpha(last_char_)) {
+    while (!iss_.eof() && std::isalpha(last_char_)) {
       ref += last_char_;
       NextChar();
     }
@@ -184,7 +184,7 @@ ExprEvaluator::Token ExprEvaluator::HandleRegRef() {
   }
   else if (std::isdigit(last_char_)) {
     // get value reference number (record id)
-    while (iss_.eof() && std::isdigit(last_char_)) {
+    while (!iss_.eof() && std::isdigit(last_char_)) {
       ref += last_char_;
       NextChar();
     }
@@ -219,7 +219,9 @@ ExprEvaluator::Token ExprEvaluator::HandleOperator() {
 }
 
 bool ExprEvaluator::Parse(std::uint32_t &ans) {
-  return cur_token_ == Token::End ? false : ParseBinary(ans);
+  if (cur_token_ == Token::End) return false;
+  if (!ParseBinary(ans)) return false;
+  return cur_token_ == Token::End;
 }
 
 bool ExprEvaluator::ParseBinary(std::uint32_t &ans) {
@@ -262,7 +264,8 @@ bool ExprEvaluator::ParseBinary(std::uint32_t &ans) {
     oprs.pop();
     oprs.push(CalcByOperator(cur_op, lhs, rhs));
   }
-  return oprs.top();
+  ans = oprs.top();
+  return true;
 }
 
 bool ExprEvaluator::ParseUnary(std::uint32_t &ans) {
@@ -301,7 +304,7 @@ bool ExprEvaluator::ParseValue(std::uint32_t &ans) {
     }
     case Token::RegName: {
       // get GPR/CSR value from core
-      if (num_val_ < 32) {
+      if (num_val_ <= 32) {
         ans = core_.regs(num_val_);
       }
       else {

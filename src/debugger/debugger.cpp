@@ -199,6 +199,7 @@ bool Debugger::CheckWatchpoints() {
       std::cout << "  new value: " << cur_val << std::endl;
       // update watchpoint info
       info.last_val = cur_val;
+      ++info.hit_count;
       return true;
     }
   }
@@ -369,12 +370,10 @@ void Debugger::CreateWatch(std::istream &is) {
 }
 
 void Debugger::DeletePoint(std::istream &is) {
-  std::uint32_t n;
-  is >> n;
   if (!is) {
     // show confirm message
     std::cout << "are you sure to delete all "
-                 "breakpoints & watchpoints? [y/n]";
+                 "breakpoints & watchpoints? [y/n] ";
     if (std::tolower(std::cin.get()) != 'y') return;
     // delete all breakpoints
     for (const auto &i : breaks_) DeleteBreak(i.first);
@@ -382,6 +381,10 @@ void Debugger::DeletePoint(std::istream &is) {
     for (const auto &i : watches_) DeleteWatch(i.first);
   }
   else {
+    // get id from input
+    std::uint32_t n;
+    is >> n;
+    if (!is) LogError("invalid breakpoint/watchpoint id");
     // delete point by id
     if (!DeleteBreak(n) && !DeleteWatch(n)) {
       LogError("breakpoint/watchpoint not found");
@@ -447,12 +450,15 @@ void Debugger::ExamineMem(std::istream &is) {
   if (!Eval(expr, addr, false)) return;
   // print memory units
   while (n--) {
-    std::cout << std::hex << std::setfill('0');
-    std::cout << std::setw(8) << addr << ": " << std::setw(2);
-    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
-    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
-    std::cout << core_.raw_bus()->ReadByte(addr++) << ' ';
-    std::cout << core_.raw_bus()->ReadByte(addr++);
+    std::cout << std::hex << std::setfill('0') << std::setw(8) << addr;
+    std::cout << ": " << std::setw(2) << std::setfill('0')
+              << static_cast<int>(core_.raw_bus()->ReadByte(addr++)) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(core_.raw_bus()->ReadByte(addr++)) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(core_.raw_bus()->ReadByte(addr++)) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(core_.raw_bus()->ReadByte(addr++));
     std::cout << std::dec << std::endl;
   }
 }
@@ -507,10 +513,10 @@ void Debugger::PrintInfo(std::istream &is) {
         for (const auto &it : watches_) {
           const auto &info = it.second;
           std::cout << "  watchpoint #" << it.first << ": $"
-                    << info.record_id << " = (";
+                    << info.record_id << " = '";
           expr_eval_.PrintExpr(std::cout, info.record_id);
-          std::cout << "), value = " << info.last_val
-                    << "hit_count = " << info.hit_count << std::endl;
+          std::cout << "', value = " << info.last_val
+                    << ", hit_count = " << info.hit_count << std::endl;
         }
       }
       break;
