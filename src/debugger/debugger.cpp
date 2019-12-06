@@ -227,7 +227,10 @@ bool Debugger::DeleteBreak(std::uint32_t id) {
   const auto &info = it->second;
   // delete breakpoint
   core_.raw_bus()->WriteWord(info.addr, info.org_inst);
-  if (cur_bp_ == &info) cur_bp_ = nullptr;
+  if (cur_bp_ == &info) {
+    core_.ReExecute(info.org_inst);
+    cur_bp_ = nullptr;
+  }
   pc_bp_.erase(info.addr);
   breaks_.erase(it);
   return true;
@@ -338,7 +341,7 @@ void Debugger::CreateBreak(std::istream &is) {
   // get address of breakpoint
   std::string expr;
   std::uint32_t addr;
-  if (!is) {
+  if (is.eof()) {
     addr = core_.pc();
   }
   else {
@@ -380,7 +383,7 @@ void Debugger::CreateWatch(std::istream &is) {
 }
 
 void Debugger::DeletePoint(std::istream &is) {
-  if (!is) {
+  if (is.eof()) {
     // show confirm message
     std::cout << "are you sure to delete all "
                  "breakpoints & watchpoints? [y/n] ";
