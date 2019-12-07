@@ -4,6 +4,7 @@
 
 #include "define/exception.h"
 #include "define/inst.h"
+#include "util/cast.h"
 
 // functional units
 #include "core/unit/int.h"
@@ -42,7 +43,7 @@ void Core::InitUnits() {
 
 void Core::Execute(std::uint32_t inst_data, CoreState &state) {
   // select functional unit
-  auto inst = reinterpret_cast<Inst *>(&inst_data);
+  auto inst = PtrCast<Inst>(&inst_data);
   auto it = units_.find(inst->opcode);
   if (it == units_.end()) {
     // illegal instruction
@@ -53,7 +54,7 @@ void Core::Execute(std::uint32_t inst_data, CoreState &state) {
     switch (inst->opcode) {
       // R-type
       case kAMO: case kOp: {
-        auto inst_r = reinterpret_cast<InstR *>(&inst_data);
+        auto inst_r = PtrCast<InstR>(&inst_data);
         it->second->ExecuteR(*inst_r, state);
         // check MMU exception
         CHECK_PAGE_FAULT(kExcStAMOPageFault);
@@ -61,7 +62,7 @@ void Core::Execute(std::uint32_t inst_data, CoreState &state) {
       }
       // I-type
       case kLoad: case kMiscMem: case kJALR: {
-        auto inst_i = reinterpret_cast<InstI *>(&inst_data);
+        auto inst_i = PtrCast<InstI>(&inst_data);
         it->second->ExecuteI(*inst_i, state);
         // check MMU exception
         CHECK_PAGE_FAULT(kExcLoadPageFault);
@@ -69,7 +70,7 @@ void Core::Execute(std::uint32_t inst_data, CoreState &state) {
       }
       // S-type
       case kStore: case kBranch: {
-        auto inst_s = reinterpret_cast<InstS *>(&inst_data);
+        auto inst_s = PtrCast<InstS>(&inst_data);
         it->second->ExecuteS(*inst_s, state);
         // check MMU exception
         CHECK_PAGE_FAULT(kExcStAMOPageFault);
@@ -77,17 +78,17 @@ void Core::Execute(std::uint32_t inst_data, CoreState &state) {
       }
       // U-type
       case kAUIPC: case kLUI: case kJAL: {
-        auto inst_u = reinterpret_cast<InstU *>(&inst_data);
+        auto inst_u = PtrCast<InstU>(&inst_data);
         it->second->ExecuteU(*inst_u, state);
         break;
       }
       // other (immediate)
       case kOpImm: {
-        auto inst_i = reinterpret_cast<InstI *>(&inst_data);
+        auto inst_i = PtrCast<InstI>(&inst_data);
         switch (inst_i->funct3) {
           case kSLLI: case kSRXI: {
             // treat 'SLLI', 'SRLI' and 'SRAI' as R-type
-            auto inst_r = reinterpret_cast<InstR *>(&inst_data);
+            auto inst_r = PtrCast<InstR>(&inst_data);
             it->second->ExecuteR(*inst_r, state);
             break;
           }
@@ -100,14 +101,14 @@ void Core::Execute(std::uint32_t inst_data, CoreState &state) {
       }
       // other (system)
       case kSystem: {
-        auto inst_r = reinterpret_cast<InstR *>(&inst_data);
+        auto inst_r = PtrCast<InstR>(&inst_data);
         if (inst_r->funct3 == kPRIV && inst_r->funct7 == kSFENCE) {
           // 'SFENCE.VMA' instruction
           it->second->ExecuteR(*inst_r, state);
         }
         else {
           // other privileged instructions
-          auto inst_i = reinterpret_cast<InstI *>(&inst_data);
+          auto inst_i = PtrCast<InstI>(&inst_data);
           it->second->ExecuteI(*inst_i, state);
         }
         break;
