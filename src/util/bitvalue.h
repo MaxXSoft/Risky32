@@ -45,6 +45,9 @@ class BitValue {
     return Concat(rhs);
   }
 
+  // boolean operator
+  constexpr operator bool() const { return value(); }
+
   // getters
   constexpr std::size_t value() const {
     return value_ & ((1 << width_) - 1);
