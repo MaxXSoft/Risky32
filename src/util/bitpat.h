@@ -3,6 +3,13 @@
 
 #include <type_traits>
 #include <string_view>
+#include <unordered_map>
+#include <memory>
+#include <variant>
+#include <optional>
+#include <utility>
+#include <initializer_list>
+#include <vector>
 #include <cstdint>
 #include <cstddef>
 #include <cassert>
@@ -59,6 +66,112 @@ using BitPat32 = BitPat<std::uint32_t>;
 
 
 // tool for pattern matching of bits
-// TODO
+template <typename T, typename Val>
+class BitMatch {
+ public:
+  static_assert(std::is_integral<T>::value);
+
+  using InitPair = std::pair<BitPat<T>, Val>;
+
+  BitMatch() {}
+  BitMatch(std::initializer_list<InitPair> init) {
+    InitRules(init.begin(), init.end());
+  }
+  BitMatch(std::initializer_list<std::pair<std::string_view, Val>> init) {
+    std::vector<InitPair> init_bp;
+    for (const auto &i : init) init_bp.push_back({{i.first}, i.second});
+    InitRules(init_bp);
+  }
+
+  // initialize rules by specific iterator
+  template <typename It>
+  bool InitRules(It begin, It end) {
+    // get current mask
+    mask_ = -1;
+    for (It it = begin; it != end; ++it) {
+      if (!it->first.mask()) {
+        // add to default rule
+        if (!default_val_) {
+          default_val_ = {it->second};
+        }
+        else {
+          return false;
+        }
+      }
+      else {
+        // update current mask
+        mask_ &= it->first.mask();
+      }
+    }
+    if (!mask_) return false;
+    // get classified rules
+    std::unordered_map<T, std::vector<InitPair>> rules;
+    for (It it = begin; it != end; ++it) {
+      const auto &p = it->first;
+      auto &r = rules[p.value() & mask_];
+      r.push_back({{p.value() & ~mask_, p.mask() & ~mask_}, it->second});
+    }
+    // divide and conquer
+    for (const auto &it : rules) {
+      if (it.second.size() == 1) {
+        // just add as value
+        matches_.insert({it.first, it.second.back().second});
+      }
+      else {
+        // add sub-match
+        auto sub = std::make_unique<BitMatch<T, Val>>();
+        if (!sub->InitRules(it.second)) return false;
+        matches_.insert({it.first, std::move(sub)});
+      }
+    }
+    return true;
+  }
+
+  // initialize rules by initializer vector
+  bool InitRules(const std::vector<InitPair> &init) {
+    return InitRules(init.begin(), init.end());
+  }
+
+  // perform bit pattern match
+  std::optional<Val> Find(T value) {
+    auto it = matches_.find(value & mask_);
+    if (it == matches_.end()) {
+      return default_val_;
+    }
+    else if (auto val_ptr = std::get_if<Val>(&it->second)) {
+      return {*val_ptr};
+    }
+    else {
+      auto sub_ptr = std::get_if<SubMatch>(&it->second);
+      assert(sub_ptr);
+      return (*sub_ptr)->Find(value);
+    }
+  }
+
+  // get count of matching rules
+  std::size_t GetSize() const {
+    std::size_t size = 0;
+    for (const auto &it : matches_) {
+      if (auto sub_ptr = std::get_if<SubMatch>(&it.second)) {
+        size += (*sub_ptr)->GetSize();
+      }
+      else {
+        ++size;
+      }
+    }
+    return size;
+  }
+
+ private:
+  using SubMatch = std::unique_ptr<BitMatch<T, Val>>;
+
+  std::unordered_map<T, std::variant<Val, SubMatch>> matches_;
+  std::optional<Val> default_val_;
+  T mask_;
+};
+
+// bit pattern maching for 32-bit data
+template <typename Val>
+using BitMatch32 = BitMatch<std::uint32_t, Val>;
 
 #endif  // RISKY32_UTIL_BITPAT_H_
