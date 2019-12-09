@@ -86,6 +86,7 @@ class BitMatch {
   // initialize rules by specific iterator
   template <typename It>
   bool InitRules(It begin, It end) {
+    It skip = end;
     // get current mask
     mask_ = -1;
     for (It it = begin; it != end; ++it) {
@@ -93,6 +94,8 @@ class BitMatch {
         // add to default rule
         if (!default_val_) {
           default_val_ = {it->second};
+          // mark as skipped rule
+          skip = it;
         }
         else {
           return false;
@@ -107,20 +110,24 @@ class BitMatch {
     // get classified rules
     std::unordered_map<T, std::vector<InitPair>> rules;
     for (It it = begin; it != end; ++it) {
+      // skip default rule
+      if (it == skip) continue;
+      // handle the rest
       const auto &p = it->first;
       auto &r = rules[p.value() & mask_];
       r.push_back({{p.value() & ~mask_, p.mask() & ~mask_}, it->second});
     }
     // divide and conquer
     for (const auto &it : rules) {
-      if (it.second.size() == 1) {
+      const auto &pairs = it.second;
+      if (pairs.size() == 1 && !pairs.back().first.mask()) {
         // just add as value
-        matches_.insert({it.first, it.second.back().second});
+        matches_.insert({it.first, pairs.back().second});
       }
       else {
         // add sub-match
         auto sub = std::make_unique<BitMatch<T, Val>>();
-        if (!sub->InitRules(it.second)) return false;
+        if (!sub->InitRules(pairs)) return false;
         matches_.insert({it.first, std::move(sub)});
       }
     }
@@ -144,7 +151,8 @@ class BitMatch {
     else {
       auto sub_ptr = std::get_if<SubMatch>(&it->second);
       assert(sub_ptr);
-      return (*sub_ptr)->Find(value);
+      auto ret = (*sub_ptr)->Find(value);
+      return ret ? ret : default_val_;
     }
   }
 
