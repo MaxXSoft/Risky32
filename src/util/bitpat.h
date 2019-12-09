@@ -65,7 +65,7 @@ class BitPat {
 using BitPat32 = BitPat<std::uint32_t>;
 
 
-// tool for pattern matching of bits
+// tool for bitwise pattern matching
 template <typename T, typename Val>
 class BitMatch {
  public:
@@ -178,7 +178,7 @@ class BitMatch {
   T mask_;
 };
 
-// bit pattern maching for 32-bit data
+// bitwise pattern maching for 32-bit data
 template <typename Val>
 using BitMatch32 = BitMatch<std::uint32_t, Val>;
 
