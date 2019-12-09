@@ -158,7 +158,7 @@ class BitMatch {
 
   // get count of matching rules
   std::size_t GetSize() const {
-    std::size_t size = 0;
+    std::size_t size = default_val_ ? 1 : 0;
     for (const auto &it : matches_) {
       if (auto sub_ptr = std::get_if<SubMatch>(&it.second)) {
         size += (*sub_ptr)->GetSize();
