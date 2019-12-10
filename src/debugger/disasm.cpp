@@ -367,7 +367,7 @@ std::string GetAsmOpcode(std::uint32_t inst_data, const AsmInfo &info) {
 
 }  // namespace
 
-DisasmInfo Disassemble(std::uint32_t inst_data, std::uint32_t addr) {
+Disasm Disassemble(std::uint32_t inst_data, std::uint32_t addr) {
   // get assembly info
   auto info_opt = kOpMap.Find(inst_data);
   assert(info_opt);

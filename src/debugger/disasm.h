@@ -5,9 +5,9 @@
 #include <utility>
 #include <cstdint>
 
-using DisasmInfo = std::pair<std::string, std::string>;
+using Disasm = std::pair<std::string, std::string>;
 
 // get disassembled instruction data
-DisasmInfo Disassemble(std::uint32_t inst_data, std::uint32_t addr);
+Disasm Disassemble(std::uint32_t inst_data, std::uint32_t addr);
 
 #endif  // RISKY32_DEBUGGER_DISASM_H_
