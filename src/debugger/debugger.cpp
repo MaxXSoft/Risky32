@@ -4,13 +4,16 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <cassert>
 #include <cstdlib>
 #include <cctype>
 
 #include "readline/readline.h"
 #include "readline/history.h"
+#include "debugger/disasm.h"
 #include "define/mmio.h"
+#include "util/style.h"
 
 namespace {
 
@@ -26,12 +29,20 @@ enum class CommandName {
   Help, Quit,
   Break, Watch, Delete,
   Continue, StepInst,
-  Print, Examine, Info,
+  Print, Examine, Disasm, Info,
 };
 
 // name of all available ITEMs in command 'info'
 enum class InfoItem {
   Reg, CSR, Break, Watch,
+};
+
+// structure of internal disassembly information
+struct DisasmInfo {
+  bool            is_breakpoint;
+  std::uint32_t   addr;
+  std::uint32_t   inst_data;
+  Disasm          disasm;
 };
 
 // hashmap of all commands
@@ -45,6 +56,7 @@ const std::unordered_map<std::string_view, CommandName> kCmdMap = {
   {"stepi", CommandName::StepInst}, {"si", CommandName::StepInst},
   {"print", CommandName::Print}, {"p", CommandName::Print},
   {"x", CommandName::Examine},
+  {"disasm", CommandName::Disasm}, {"da", CommandName::Disasm},
   {"info", CommandName::Info},
 };
 
@@ -88,6 +100,8 @@ void PrintHelp() {
                "--- show value of EXPR" << std::endl;
   std::cout << "  x         N EXPR    "
                "--- examine memory at EXPR" << std::endl;
+  std::cout << "  disasm/da [N EXPR]  "
+               "--- disassemble memory at EXPR" << std::endl;
   std::cout << "  info      ITEM      "
                "--- show information of ITEM" << std::endl;
 }
@@ -145,6 +159,14 @@ void PrintHelp(CommandName cmd) {
       std::cout << "Syntax: x N EXPR" << std::endl;
       std::cout << "  Examine N units memory at address EXPR, "
                    "4 bytes per unit." << std::endl;
+      break;
+    }
+    case CommandName::Disasm: {
+      std::cout << "Syntax: disasm/da [N EXPR]" << std::endl;
+      std::cout << "  Disassemble N units memory at address EXPR, "
+                   "4 bytes per unit. EXPR must be aligned." << std::endl;
+      std::cout << "  Display 10 instructions near current PC "
+                   "by default." << std::endl;
       break;
     }
     case CommandName::Info: {
@@ -247,6 +269,69 @@ bool Debugger::DeleteWatch(std::uint32_t id) {
   return true;
 }
 
+void Debugger::ShowDisasm() {
+  auto base = core_.pc() - 2 * 4;
+  ShowDisasm(base, 10);
+}
+
+void Debugger::ShowDisasm(std::uint32_t base, std::uint32_t count) {
+  assert((base & 0b11) == 0 && count);
+  // get all disassembly
+  std::vector<DisasmInfo> code;
+  int padding = 0;
+  bool inc_bp = false;
+  for (std::uint32_t i = 0; i < count; ++i) {
+    auto addr = base + i * 4;
+    // get instruction data
+    std::uint32_t inst_data;
+    bool is_bp = false;
+    for (const auto &it : breaks_) {
+      if (it.second.addr == addr) {
+        inst_data = it.second.org_inst;
+        is_bp = true;
+        break;
+      }
+    }
+    if (!is_bp) inst_data = core_.raw_bus()->ReadWord(addr);
+    // get disassembly
+    auto disasm = Disassemble(inst_data, addr);
+    code.push_back({is_bp, addr, inst_data, disasm});
+    // update padding width & breakpoint flag
+    if (disasm.first.size() > padding) padding = disasm.first.size();
+    if (!inc_bp && is_bp) inc_bp = is_bp;
+  }
+  // print disassembly
+  for (const auto &i : code) {
+    // print breakpoint info
+    if (inc_bp) {
+      if (i.is_breakpoint) {
+        std::cout << style("D") << " B> ";
+      }
+      else {
+        std::cout << "    ";
+      }
+    }
+    // print current address
+    if (i.addr == core_.pc()) {
+      std::cout << style("I") << std::hex << std::setw(8)
+                << std::setfill('0') << std::right << i.addr << style("R")
+                << ":  ";
+    }
+    else {
+      std::cout << std::hex << std::setw(8) << std::setfill('0')
+                << std::right << i.addr << ":  ";
+    }
+    // print raw instruction data
+    std::cout << std::hex << std::setw(8) << std::setfill('0') << std::right
+              << i.inst_data << "      ";
+    // print disassembly
+    std::cout << style("B") << i.disasm.first;
+    std::cout << std::setw(padding + 2 - i.disasm.first.size())
+              << std::setfill(' ') << ' ';
+    std::cout << i.disasm.second << std::endl;
+  }
+}
+
 void Debugger::AcceptCommand() {
   // clear debugger state
   user_pause_ = 0;
@@ -323,6 +408,10 @@ bool Debugger::ParseCommand(std::istream &is) {
     }
     case CommandName::Examine: {
       ExamineMem(is);
+      break;
+    }
+    case CommandName::Disasm: {
+      DisasmMem(is);
       break;
     }
     case CommandName::Info: {
@@ -477,6 +566,33 @@ void Debugger::ExamineMem(std::istream &is) {
               << static_cast<int>(core_.raw_bus()->ReadByte(addr++));
     std::cout << std::dec << std::endl;
   }
+}
+
+void Debugger::DisasmMem(std::istream &is) {
+  // no parameters
+  if (is.eof()) {
+    ShowDisasm();
+    return;
+  }
+  // get parameters
+  std::uint32_t base, n;
+  std::string expr;
+  is >> n;
+  if (!is || !n) {
+    LogError("invalid count 'N', try 'help disasm'");
+    return;
+  }
+  if (!std::getline(is, expr)) {
+    LogError("invalid 'EXPR', try 'help disasm'");
+    return;
+  }
+  if (!Eval(expr, base, false)) return;
+  if (base & 0b11) {
+    LogError("'EXPR' is misaligned, try 'help disasm'");
+    return;
+  }
+  // show disassembly
+  ShowDisasm(base, n);
 }
 
 void Debugger::PrintInfo(std::istream &is) {

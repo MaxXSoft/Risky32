@@ -71,6 +71,10 @@ class Debugger : public PeripheralInterface {
   bool DeleteBreak(std::uint32_t id);
   // delete watchpoint by id, returns false if failed
   bool DeleteWatch(std::uint32_t id);
+  // show disassembly near current PC
+  void ShowDisasm();
+  // show disassembly
+  void ShowDisasm(std::uint32_t base, std::uint32_t count);
 
   // accept user input
   void AcceptCommand();
@@ -88,6 +92,8 @@ class Debugger : public PeripheralInterface {
   void PrintExpr(std::istream &is);
   // examine memory ('x N EXPR' command)
   void ExamineMem(std::istream &is);
+  // disassemble memory ('disasm [N EXPR]' command)
+  void DisasmMem(std::istream &is);
   // print information ('info ITEM' command)
   void PrintInfo(std::istream &is);
 
