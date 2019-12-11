@@ -37,7 +37,8 @@ class Bus : public PeripheralInterface {
 
  private:
   struct PeripheralItem {
-    std::uint32_t base_addr, mask;
+    std::uint64_t base_addr;
+    std::uint32_t size;
     PeripheralPtr peripheral;
   };
 

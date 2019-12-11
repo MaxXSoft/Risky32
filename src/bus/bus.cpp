@@ -18,25 +18,24 @@ bool Bus::AddPeripheral(std::uint32_t base_addr,
                         const PeripheralPtr &peripheral) {
   // get address space length of peripheral
   auto size = RoundToPow2(peripheral->size());
-  auto mask = ~(size - 1);
   // address space does not allow overlap
   for (const auto &i : peripherals_) {
     if (i.base_addr >= base_addr && i.base_addr < base_addr + size) {
       return false;
     }
-    if (base_addr >= i.base_addr && base_addr <= i.base_addr + ~i.mask) {
+    if (base_addr >= i.base_addr && base_addr < i.base_addr + i.size) {
       return false;
     }
   }
   // add io device
-  peripherals_.push_back({base_addr, mask, peripheral});
+  peripherals_.push_back({base_addr, size, peripheral});
   return true;
 }
 
 PeripheralInterface *Bus::GetPeripheral(std::uint32_t addr) {
   // TODO: optimize time complexity (<= O(logn))
   for (const auto &i : peripherals_) {
-    if ((addr & i.mask) == i.base_addr) {
+    if (addr >= i.base_addr && addr < i.base_addr + i.size) {
       return i.peripheral.get();
     }
   }
@@ -47,8 +46,8 @@ PeripheralInterface *Bus::GetPeripheral(std::uint32_t addr,
                                         std::uint32_t &offset) {
   // TODO: optimize time complexity (<= O(logn))
   for (const auto &i : peripherals_) {
-    if ((addr & i.mask) == i.base_addr) {
-      offset = addr & ~i.mask;
+    if (addr >= i.base_addr && addr < i.base_addr + i.size) {
+      offset = addr - i.base_addr;
       return i.peripheral.get();
     }
   }
