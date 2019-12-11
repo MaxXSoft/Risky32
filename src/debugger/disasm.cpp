@@ -189,18 +189,14 @@ BitMatch32<AsmInfo> kOpMap = {
 
 // extract immediate from instruction data by specific immediate encoding
 std::uint32_t GetImmFromInst(std::uint32_t inst_data, ImmEncode imm_enc) {
-  auto bv = BitValue(inst_data, 32);
-  auto z = BitValue(0, 1);
+  BitValue32 bv = {inst_data, 32};
+  BitValue32 z = {0, 1};
   switch (imm_enc) {
-    case ImmEncode::I: return bv(31, 20).value();
-    case ImmEncode::S: return (bv(31, 25) | bv(11, 7)).value();
-    case ImmEncode::B: {
-      return (bv(31) | bv(7) | bv(30, 25) | bv(11, 8) | z).value();
-    }
-    case ImmEncode::U: return bv(31, 12).value();
-    case ImmEncode::J: {
-      return (bv(31) | bv(19, 12) | bv(20) | bv(30, 21) | z).value();
-    }
+    case ImmEncode::I: return bv(31, 20);
+    case ImmEncode::S: return bv(31, 25) | bv(11, 7);
+    case ImmEncode::B: return bv(31) | bv(7) | bv(30, 25) | bv(11, 8) | z;
+    case ImmEncode::U: return bv(31, 12);
+    case ImmEncode::J: return bv(31) | bv(19, 12) | bv(20) | bv(30, 21) | z;
     default: return 0;
   }
 }
@@ -217,7 +213,7 @@ void PrintRegName(std::ostream &os, std::uint32_t addr) {
 }
 
 // print memory order to output stream
-void PrintOrder(std::ostream &os, const BitValue &order) {
+void PrintOrder(std::ostream &os, const BitValue32 &order) {
   assert(order.width() == 4);
   if (!order) {
     os << "unknown";
@@ -231,10 +227,8 @@ void PrintOrder(std::ostream &os, const BitValue &order) {
 }
 
 AsmArgs GetAsmArgs(std::uint32_t inst_data, const AsmInfo &info) {
-  // 'none' type instructions does not need argument list
-  if (info.format == AsmFormat::None) return {};
   // get bit value of current instruction
-  BitValue inst = {inst_data, 32};
+  BitValue32 inst = {inst_data, 32};
   // get argument list
   auto imm = GetImmFromInst(inst_data, info.imm);
   return {inst(11, 7), inst(19, 15), inst(24, 20), imm};
@@ -309,7 +303,7 @@ std::string GetAsmString(const AsmInfo &info, const AsmArgs &args,
       break;
     }
     case AsmFormat::MemOrder: {
-      BitValue order = {args.imm, 12};
+      BitValue32 order = {args.imm, 12};
       PrintOrder(oss, order(3, 0));
       oss << ", ";
       PrintOrder(oss, order(7, 4));
@@ -355,7 +349,7 @@ std::string GetAsmOpcode(std::uint32_t inst_data, const AsmInfo &info) {
   if (info.format == AsmFormat::AMO2 || info.format == AsmFormat::AMO3) {
     // check 'aquire' and 'release' flags
     std::ostringstream oss(info.opcode.data());
-    BitValue bv = {inst_data, 32};
+    BitValue32 bv = {inst_data, 32};
     if (bv[26]) oss << ".aq";
     if (bv[25]) oss << ".rl";
     return oss.str();
