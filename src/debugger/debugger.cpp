@@ -303,6 +303,7 @@ void Debugger::ShowDisasm(std::uint32_t base, std::uint32_t count) {
     if (!inc_bp && is_bp) inc_bp = is_bp;
   }
   // print disassembly
+  auto cur_pc = cur_bp_ ? cur_bp_->addr : core_.pc();
   for (const auto &i : code) {
     // print breakpoint info
     if (inc_bp) {
@@ -314,7 +315,7 @@ void Debugger::ShowDisasm(std::uint32_t base, std::uint32_t count) {
       }
     }
     // print current address
-    if (i.addr == core_.pc()) {
+    if (i.addr == cur_pc) {
       std::cout << style("I") << std::hex << std::setw(8)
                 << std::setfill('0') << std::right << i.addr << style("R")
                 << ":  ";
