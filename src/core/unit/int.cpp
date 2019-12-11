@@ -93,7 +93,7 @@ void IntUnit::ExecuteR(const InstR &inst, CoreState &state) {
   opr1 = state.regs(inst.rs1);
   if (inst.opcode == kOpImm) {
     // 'SLLI', 'SRLI'
-    assert(inst.funct3 == kSRXI);
+    assert(inst.funct3 == kSLLI || inst.funct3 == kSRXI);
     opr2 = inst.rs2;
   }
   else {
