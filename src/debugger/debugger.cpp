@@ -188,7 +188,9 @@ void PrintHelp(CommandName cmd) {
 
 }  // namespace
 
-volatile sig_atomic_t Debugger::user_pause_ = 0;
+// definition of user's pause flag, default to 'true'
+// because the debugger interface must be entered after startup
+volatile sig_atomic_t Debugger::user_pause_ = 1;
 
 void Debugger::SignalHandler(int sig) {
   assert(sig == SIGINT);
@@ -333,6 +335,11 @@ void Debugger::ShowDisasm(std::uint32_t base, std::uint32_t count) {
 }
 
 void Debugger::AcceptCommand() {
+  // print disassembly when step/breakpoint
+  if (!step_count_ || dbg_pause_) {
+    std::cout << std::endl;
+    ShowDisasm();
+  }
   // clear debugger state
   user_pause_ = 0;
   step_count_ = -1;
