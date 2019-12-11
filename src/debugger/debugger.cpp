@@ -325,7 +325,7 @@ void Debugger::ShowDisasm(std::uint32_t base, std::uint32_t count) {
     }
     // print raw instruction data
     std::cout << std::hex << std::setw(8) << std::setfill('0') << std::right
-              << i.inst_data << "      ";
+              << i.inst_data << std::dec << "      ";
     // print disassembly
     std::cout << style("B") << i.disasm.first;
     std::cout << std::setw(padding + 2 - i.disasm.first.size())
@@ -696,7 +696,7 @@ void Debugger::WriteWord(std::uint32_t addr, std::uint32_t value) {
     ++it->second->hit_count;
     // show message
     std::cout << "breakpoint hit, pc = 0x" << std::hex << std::setw(8)
-              << std::setfill('0') << it->first << std::endl;
+              << std::setfill('0') << it->first << std::dec << std::endl;
   }
 }
 

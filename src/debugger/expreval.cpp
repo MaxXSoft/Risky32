@@ -273,6 +273,7 @@ bool ExprEvaluator::ParseUnary(std::uint32_t &ans) {
   // check if need to get operator
   if (cur_token_ == Token::Operator) {
     auto op = op_val_;
+    NextToken();
     // get operand
     std::uint32_t operand;
     if (!ParseUnary(operand)) return false;
