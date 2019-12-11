@@ -171,7 +171,7 @@ ExprEvaluator::Token ExprEvaluator::HandleRegRef() {
   NextChar();
   if (std::isalpha(last_char_)) {
     // get register name
-    while (!iss_.eof() && std::isalpha(last_char_)) {
+    while (!iss_.eof() && std::isalnum(last_char_)) {
       ref += last_char_;
       NextChar();
     }
