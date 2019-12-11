@@ -79,7 +79,7 @@ int main(int argc, const char *argv[]) {
 
   if (debug) {
     PrintVersion();
-    std::cout << std::endl;
+    cout << endl;
     // run debugger
     auto debugger = make_shared<Debugger>(core);
     bus->AddPeripheral(kMMIOAddrDebugger, debugger);
