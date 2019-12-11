@@ -274,7 +274,8 @@ std::string GetAsmString(const AsmInfo &info, const AsmArgs &args,
     case AsmFormat::RegTarget: {
       PrintRegName(oss, args.rd);
       auto ofs = args.imm & (1 << 20) ? 0xffe00000 | args.imm : args.imm;
-      oss << ", 0x" << std::hex << (addr + ofs);
+      oss << ", 0x" << std::hex << std::setw(8) << std::setfill('0')
+          << (addr + ofs);
       break;
     }
     case AsmFormat::RegRegTarget: {
@@ -282,7 +283,8 @@ std::string GetAsmString(const AsmInfo &info, const AsmArgs &args,
       oss << ", ";
       PrintRegName(oss, args.rs2);
       auto ofs = args.imm & (1 << 12) ? 0xffffe000 | args.imm : args.imm;
-      oss << ", 0x" << std::hex << (addr + ofs);
+      oss << ", 0x" << std::hex << std::setw(8) << std::setfill('0')
+          << (addr + ofs);
       break;
     }
     case AsmFormat::RegBaseImm: {
