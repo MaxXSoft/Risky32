@@ -79,7 +79,8 @@ const std::unordered_map<std::uint32_t, std::string_view> kNameMap = {
   // M-mode CSRs
   {kCSRMVenderId, "mvenderid"}, {kCSRMArchId, "marchid"},
   {kCSRMImpId, "mimpid"}, {kCSRMHartId, "mhartid"},
-  {kCSRMStatus, "mstatus"}, {kCSRMISA, "misa"}, {kCSRMIE, "mie"},
+  {kCSRMStatus, "mstatus"}, {kCSRMISA, "misa"},
+  {kCSRMEDeleg, "medeleg"}, {kCSRMIDeleg, "mideleg"}, {kCSRMIE, "mie"},
   {kCSRMTVec, "mtvec"}, {kCSRMCounterEn, "mcounteren"},
   {kCSRMScratch, "mscratch"}, {kCSRMEPC, "mepc"}, {kCSRMCause, "mcause"},
   {kCSRMTVal, "mtval"}, {kCSRMIP, "mip"},

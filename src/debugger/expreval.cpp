@@ -70,7 +70,8 @@ const std::unordered_map<std::string_view, std::uint32_t> kRegCSRMap = {
   // M-mode CSRs
   {"mvenderid", kCSRMVenderId}, {"marchid", kCSRMArchId},
   {"mimpid", kCSRMImpId}, {"mhartid", kCSRMHartId},
-  {"mstatus", kCSRMStatus}, {"misa", kCSRMISA}, {"mie", kCSRMIE},
+  {"mstatus", kCSRMStatus}, {"misa", kCSRMISA},
+  {"medeleg", kCSRMEDeleg}, {"mideleg", kCSRMIDeleg}, {"mie", kCSRMIE},
   {"mtvec", kCSRMTVec}, {"mcounteren", kCSRMCounterEn},
   {"mscratch", kCSRMScratch}, {"mepc", kCSRMEPC}, {"mcause", kCSRMCause},
   {"mtval", kCSRMTVal}, {"mip", kCSRMIP},
