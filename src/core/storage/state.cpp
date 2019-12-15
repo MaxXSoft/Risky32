@@ -10,6 +10,9 @@
 
 namespace {
 
+// initial value of 'exc_code_' in 'CoreState'
+constexpr std::uint32_t kStateExcCodeReset = -1;
+
 // get priority of exceptions & interrupts
 inline int GetExcPriority(std::uint32_t exc_code) {
   switch (exc_code) {
@@ -57,12 +60,12 @@ std::uint32_t UpdateCSR(CSR &csr, std::uint32_t addr,
 void CoreState::Reset() {
   for (auto &&i : regs_) i = 0;
   pc_ = kResetVector;
-  exc_code_ = 0;
+  exc_code_ = kStateExcCodeReset;
 }
 
 bool CoreState::CheckAndClearExcFlag() {
-  if (exc_code_) {
-    exc_code_ = 0;
+  if (exc_code_ != kStateExcCodeReset) {
+    exc_code_ = kStateExcCodeReset;
     // set machine mode EPC & next pc
     core_.csr().set_mepc(pc_);
     next_pc_ = core_.csr().trap_vec();
