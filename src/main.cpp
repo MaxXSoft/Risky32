@@ -96,5 +96,6 @@ int main(int argc, const char *argv[]) {
     }
   }
 
-  return 0;
+  // return the value of register 'a0' as exit code
+  return core.regs(10);
 }
