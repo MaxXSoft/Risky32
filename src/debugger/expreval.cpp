@@ -307,6 +307,7 @@ bool ExprEvaluator::ParseValue(std::uint32_t &ans) {
     }
     case Token::RegName: {
       // get GPR/CSR value from core
+      // '<= 32' makes sence because U-mode trap is not supported
       if (num_val_ <= 32) {
         ans = core_.regs(num_val_);
       }
