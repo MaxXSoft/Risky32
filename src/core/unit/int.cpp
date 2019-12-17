@@ -88,22 +88,44 @@ std::uint32_t PerformIntOp(std::uint32_t opr1, std::uint32_t opr2,
 }  // namespace
 
 void IntUnit::ExecuteR(const InstR &inst, CoreState &state) {
-  // get operands
   std::uint32_t opr1, opr2;
+  // get operand 1
   opr1 = state.regs(inst.rs1);
+  // check if is illegal instruction and then get operand 2
   if (inst.opcode == kOpImm) {
-    // 'SLLI', 'SRLI'
-    assert(inst.funct3 == kSLLI || inst.funct3 == kSRXI);
+    // shift with 'shamt'
+    switch (inst.funct7) {
+      case kRV32I1: {
+        if (inst.funct3 == kSLLI || inst.funct3 == kSRXI) break;
+        // fallthrough
+      }
+      case kRV32I2: {
+        if (inst.funct3 == kSRXI) break;
+        // fallthrough
+      }
+      default: {
+        // invalid 'funct7' field
+        state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
+        return;
+      }
+    }
     opr2 = inst.rs2;
   }
   else {
+    // RV32I or RV32M
+    switch (inst.funct7) {
+      case kRV32I1: case kRV32M: break;
+      case kRV32I2: {
+        if (inst.funct3 == kADDSUB || inst.funct3 == kSRX) break;
+        // fallthrough
+      }
+      default: {
+        // invalid 'funct7' field
+        state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
+        return;
+      }
+    }
     opr2 = state.regs(inst.rs2);
-  }
-  // check 'funct7' field
-  if (inst.funct7 != kRV32I1 && inst.funct7 != kRV32I2 &&
-      inst.funct7 != kRV32M) {
-    // invalid 'funct7' field
-    state.RaiseException(kExcIllegalInst, *IntPtrCast<32>(&inst));
   }
   // calculate
   state.regs(inst.rd) = PerformIntOp(opr1, opr2, inst.funct3, inst.funct7);
