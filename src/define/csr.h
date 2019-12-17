@@ -138,7 +138,10 @@ constexpr std::uint32_t kPrivLevelS       = 0b01;
 constexpr std::uint32_t kPrivLevelH       = 0b10; // unimplemented
 constexpr std::uint32_t kPrivLevelM       = 0b11;
 
-// user counters
+// assress bitmask of CSR
+constexpr std::uint32_t kMaskReadOnlyCSR  = 0xc00;
+
+// user counters (read only)
 constexpr std::uint32_t kCSRCycle         = 0xc00;
 constexpr std::uint32_t kCSRTime          = 0xc01;
 constexpr std::uint32_t kCSRInstRet       = 0xc02;
@@ -160,7 +163,7 @@ constexpr std::uint32_t kCSRSTVal         = 0x143;
 constexpr std::uint32_t kCSRSIP           = 0x144;
 
 // supervisor protection and translation
-constexpr std::uint32_t kCSRSATP        = 0x180;
+constexpr std::uint32_t kCSRSATP          = 0x180;
 
 // machine information registers (read only)
 constexpr std::uint32_t kCSRMVenderId     = 0xf11;

@@ -132,6 +132,9 @@ bool CSR::WriteData(std::uint32_t addr, std::uint32_t value) {
   else {
     // check if accessing CSRs in upper privilege level
     if (cur_priv_ < GetPrivByCSRAddr(addr)) return false;
+    // check if accessing a read-only CSR
+    if ((addr & kMaskReadOnlyCSR) == kMaskReadOnlyCSR) return false;
+    // handle write operation
     switch (addr) {
       case kCSRSStatus: {
         *it->second = value & kMaskSStatus;
