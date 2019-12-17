@@ -20,7 +20,8 @@ inline int GetExcPriority(std::uint32_t exc_code) {
     case kExcStAMOPageFault: case kExcLoadPageFault: return 2;
     case kExcStAMOAddrMisalign: case kExcLoadAddrMisalign: return 3;
     case kExcIllegalInst: case kExcInstAddrMisalign:
-    case kExcMEnvCall: case kExcBreakpoint: return 4;
+    case kExcUEnvCall: case kExcSEnvCall: case kExcMEnvCall:
+    case kExcBreakpoint: return 4;
     case kExcInstAccFault: return 5;
     case kExcInstPageFault: return 5;
     default: {

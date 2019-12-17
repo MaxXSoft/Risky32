@@ -12,7 +12,12 @@ bool PerformPrivileged(const InstI &inst, CoreState &state) {
   switch (inst.imm) {
     case kECALL: {
       // environment call
-      state.RaiseException(kExcMEnvCall);
+      switch (state.csr().cur_priv()) {
+        case kPrivLevelU: state.RaiseException(kExcUEnvCall); break;
+        case kPrivLevelS: state.RaiseException(kExcSEnvCall); break;
+        case kPrivLevelM: state.RaiseException(kExcMEnvCall); break;
+        default: assert(false);
+      }
       break;
     }
     case kEBREAK: {
