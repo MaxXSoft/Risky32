@@ -250,6 +250,7 @@ void LoadStoreUnit::ExecuteS(const InstS &inst, CoreState &state) {
     case kSB: {
       // store byte
       state.bus().WriteByte(addr, state.regs(inst.rs2));
+      break;
     }
     case kSH: {
       // store half word

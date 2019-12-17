@@ -51,6 +51,7 @@ void BranchUnit::ExecuteS(const InstS &inst, CoreState &state) {
     case kBGE: {
       // branch if greater than or equal (signed)
       if (src1s >= src2s) state.next_pc() = target;
+      break;
     }
     case kBLTU: {
       // branch if less than (unsigned)
