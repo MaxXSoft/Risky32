@@ -41,11 +41,13 @@ class CSR {
   std::uint32_t mie() const { return mie_; }
   // trap vector
   std::uint32_t trap_vec() const {
-    if ((mtvec_ & 0b11) == 1) {
+    if ((mtvec_ & 0b11) == 1 && (mcause_ & 0x80000000)) {
+      // vectored mode
       return mtvec_ - 1 + (mcause_ & 0x7fffffff) * 4;
     }
     else {
-      return mtvec_;
+      // direct mode
+      return mtvec_ & ~0b11;
     }
   }
   // M-mode exception program counter
