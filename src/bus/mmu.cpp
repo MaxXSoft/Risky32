@@ -105,7 +105,7 @@ std::uint32_t MMU::GetPhysicalAddr(std::uint32_t addr, bool is_store,
                                    bool is_execute) {
   auto satp_val = csr_.satp();
   auto satp = PtrCast<SATP>(&satp_val);
-  if (!satp->mode) {
+  if (csr_.cur_priv() == kPrivLevelM || !satp->mode) {
     // address translation is not enabled
     return addr;
   }
