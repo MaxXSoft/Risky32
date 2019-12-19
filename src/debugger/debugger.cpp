@@ -484,11 +484,15 @@ void Debugger::DeletePoint(std::istream &is) {
     // show confirm message
     std::cout << "are you sure to delete all "
                  "breakpoints & watchpoints? [y/n] ";
-    if (std::tolower(std::cin.get()) != 'y') return;
+    std::string line;
+    if (!std::getline(std::cin, line) || line.size() != 1) return;
+    if (std::tolower(line[0]) != 'y') return;
     // delete all breakpoints
-    for (const auto &i : breaks_) DeleteBreak(i.first);
+    auto breaks = breaks_;
+    for (const auto &i : breaks) DeleteBreak(i.first);
     // delete all watchpoints
-    for (const auto &i : watches_) DeleteWatch(i.first);
+    auto watches = watches_;
+    for (const auto &i : watches) DeleteWatch(i.first);
   }
   else {
     // get id from input
