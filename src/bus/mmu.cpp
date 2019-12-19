@@ -95,14 +95,9 @@ Unrolled version (unrolled by MaxXing):
     return 0;           \
   } while (0)
 
-namespace {
-
-//
-
-}  // namespace
-
 std::uint32_t MMU::GetPhysicalAddr(std::uint32_t addr, bool is_store,
                                    bool is_execute) {
+  last_vaddr_ = addr;
   auto satp_val = csr_.satp();
   auto satp = PtrCast<SATP>(&satp_val);
   if (csr_.cur_priv() == kPrivLevelM || !satp->mode) {

@@ -10,7 +10,7 @@
 class MMU : public PeripheralInterface {
  public:
   MMU(CSR &csr, const PeripheralPtr &bus)
-      : csr_(csr), bus_(bus), is_invalid_(false) {}
+      : csr_(csr), bus_(bus), is_invalid_(false), last_vaddr_(0) {}
 
   std::uint8_t ReadByte(std::uint32_t addr) override;
   void WriteByte(std::uint32_t addr, std::uint8_t value) override;
@@ -29,6 +29,8 @@ class MMU : public PeripheralInterface {
   // getters
   // check if last operation is invalid
   bool is_invalid() const { return is_invalid_; }
+  // last virtual address
+  std::uint32_t last_vaddr() const { return last_vaddr_; }
 
  private:
   std::uint32_t GetPhysicalAddr(std::uint32_t addr, bool is_store,
@@ -39,6 +41,7 @@ class MMU : public PeripheralInterface {
   CSR &csr_;
   PeripheralPtr bus_;
   bool is_invalid_;
+  std::uint32_t last_vaddr_;
 };
 
 #endif  // RISKY32_BUS_MMU_H_

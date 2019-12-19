@@ -13,11 +13,11 @@
 #include "core/unit/system.h"
 
 // helper macro
-#define CHECK_PAGE_FAULT(exc_code)               \
-  do {                                           \
-    if (mmu_.is_invalid()) {                     \
-      state.RaiseException(exc_code, inst_data); \
-    }                                            \
+#define CHECK_PAGE_FAULT(exc_code)                       \
+  do {                                                   \
+    if (mmu_.is_invalid()) {                             \
+      state.RaiseException(exc_code, mmu_.last_vaddr()); \
+    }                                                    \
   } while (0)
 
 void Core::InitUnits() {
@@ -152,7 +152,7 @@ void Core::NextCycle() {
   state.next_pc() = state.pc() + 4;
   // check MMU exception
   if (mmu_.is_invalid()) {
-    state.RaiseException(kExcInstPageFault, inst_data);
+    state.RaiseException(kExcInstPageFault, mmu_.last_vaddr());
   }
   else {
     // dispatch and execute
