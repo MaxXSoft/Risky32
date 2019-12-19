@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(Risky32 VERSION "0.0.3")
+project(Risky32 VERSION "0.0.5")
 
 # set CMake module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
