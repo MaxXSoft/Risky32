@@ -21,7 +21,7 @@ Risky32 is a RISC-V emulator written in C++.
 - [x] CLINT (core local interrupt controller)
 - [ ] PLIC (platform level interrupt controller)
 - [x] MMU and virtual-memory system
-- [ ] Debugger
+- [x] Debugger
 - [ ] JIT
 
 ## Copyright and License
