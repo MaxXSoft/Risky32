@@ -351,8 +351,9 @@ std::string GetAsmString(const AsmInfo &info, const AsmArgs &args,
 std::string GetAsmOpcode(std::uint32_t inst_data, const AsmInfo &info) {
   if (info.format == AsmFormat::AMO2 || info.format == AsmFormat::AMO3) {
     // check 'aquire' and 'release' flags
-    std::ostringstream oss(info.opcode.data());
+    std::ostringstream oss;
     BitValue32 bv = {inst_data, 32};
+    oss << info.opcode;
     if (bv[26]) oss << ".aq";
     if (bv[25]) oss << ".rl";
     return oss.str();
