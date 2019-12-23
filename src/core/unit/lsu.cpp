@@ -78,8 +78,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOSWAP: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = state.regs(inst.rs2);
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -87,8 +87,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOADD: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = data + state.regs(inst.rs2);
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -96,8 +96,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOXOR: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = data ^ state.regs(inst.rs2);
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -105,8 +105,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOAND: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = data & state.regs(inst.rs2);
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -114,8 +114,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOOR: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = data | state.regs(inst.rs2);
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -123,8 +123,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOMIN: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = Min(data, state.regs(inst.rs2));
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -132,8 +132,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOMAX: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = Max(data, state.regs(inst.rs2));
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -141,8 +141,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOMINU: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = MinU(data, state.regs(inst.rs2));
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
@@ -150,8 +150,8 @@ void LoadStoreUnit::ExecuteR(const InstR &inst, CoreState &state) {
     case kAMOMAXU: {
       if (CheckNoAddrExc(addr, state)) {
         auto data = state.bus().ReadWord(addr);
-        state.regs(inst.rd) = data;
         auto result = MaxU(data, state.regs(inst.rs2));
+        state.regs(inst.rd) = data;
         state.bus().WriteWord(addr, result);
       }
       break;
