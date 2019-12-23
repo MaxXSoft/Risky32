@@ -437,6 +437,16 @@ void ExprEvaluator::PrintRegInfo(std::ostream &os) {
 }
 
 void ExprEvaluator::PrintCSRInfo(std::ostream &os) {
+  // print current privilege mode
+  os << "current mode: ";
+  switch (core_.csr().cur_priv()) {
+    case kPrivLevelU: os << 'U'; break;
+    case kPrivLevelS: os << 'S'; break;
+    case kPrivLevelM: os << 'M'; break;
+    default: assert(false); break;
+  }
+  os << "-mode" << std::endl;
+  // print value of CSRs
   int count = 0;
   for (const auto &i : kCSRNames) {
     // get CSR address
