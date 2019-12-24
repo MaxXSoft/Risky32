@@ -137,6 +137,7 @@ void Core::WriteBack(CoreState &state) {
   state_.regs(0) = 0;
   state_.pc() = state.next_pc();
   csr_.UpdateCSR();
+  state_.LatchCSR();
 }
 
 void Core::Reset() {

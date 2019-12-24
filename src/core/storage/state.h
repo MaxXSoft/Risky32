@@ -28,9 +28,11 @@ class CoreState {
   void Reset();
   // clear exception flag, returns true if there is an exception
   bool CheckAndClearExcFlag();
-
   // check external interrupt
   void CheckInterrupt();
+  // latch CSR info (avoid asynchronous exception deadlocks)
+  void LatchCSR();
+
   // raise an exception
   void RaiseException(std::uint32_t exc_code);
   // raise an exception (with trap value required by some exceptions)
@@ -62,6 +64,8 @@ class CoreState {
   std::uint32_t pc_, next_pc_;
   // exception code (zero if no exception)
   std::uint32_t exc_code_;
+  // latched CSR info
+  std::uint32_t last_mstatus_, last_mie_;
 };
 
 #endif  // RISKY32_CORE_STORAGE_STATE_H_

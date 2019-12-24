@@ -62,6 +62,7 @@ void CoreState::Reset() {
   for (auto &&i : regs_) i = 0;
   pc_ = kResetVector;
   exc_code_ = kStateExcCodeReset;
+  LatchCSR();
 }
 
 bool CoreState::CheckAndClearExcFlag() {
@@ -91,20 +92,19 @@ bool CoreState::CheckAndClearExcFlag() {
 
 void CoreState::CheckInterrupt() {
   // check M-mode interrupt only, since S-mode trap is not implemented
-  // get 'mstatus', 'mip' and 'mie' from CSR
-  auto mstatus_val = core_.csr().mstatus();
-  auto mstatus = PtrCast<MStatus>(&mstatus_val);
+  // get 'mstatus', 'mie' from latched CSR
+  auto mstatus = PtrCast<MStatus>(&last_mstatus_);
+  auto mie = PtrCast<MIE>(&last_mie_);
+  // get 'mip' from CSR
   auto mip_val = core_.csr().mip();
   auto mip = PtrCast<MIP>(&mip_val);
-  auto mie_val = core_.csr().mie();
-  auto mie = PtrCast<MIE>(&mie_val);
   // update 'mip'
   mip->msip = core_.soft_int() ? *core_.soft_int() : 0;
   mip->mtip = core_.timer_int() ? *core_.timer_int() : 0;
   mip->meip = core_.ext_int() ? *core_.ext_int() : 0;
   core_.csr().set_mip(mip_val);
   // generate exception code of interrupts
-  auto exc_code = 1 << 31;
+  auto exc_code = 1U << 31;
   if (mip->meip && mie->meie) {
     exc_code |= kExcMExternalInt;
   }
@@ -115,7 +115,12 @@ void CoreState::CheckInterrupt() {
     exc_code |= kExcMSoftInt;
   }
   // handle interrupts
-  if (mstatus->mie && (mip_val & mie_val)) RaiseException(exc_code);
+  if (mstatus->mie && (mip_val & last_mie_)) RaiseException(exc_code);
+}
+
+void CoreState::LatchCSR() {
+  last_mstatus_ = core_.csr().mstatus();
+  last_mie_ = core_.csr().mie();
 }
 
 void CoreState::RaiseException(std::uint32_t exc_code) {
