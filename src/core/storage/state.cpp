@@ -158,7 +158,7 @@ bool CoreState::ReturnFromTrap(std::uint32_t mode) {
   }
   else if (mode == kPrivLevelS) {
     // return from S-mode
-    next_pc_ = core_.csr().mepc();
+    next_pc_ = core_.csr().sepc();
     // update 'sstatus'
     auto priv =
         UpdateCSR<SStatus>(core_.csr(), kCSRSStatus, [](SStatus &x) {
