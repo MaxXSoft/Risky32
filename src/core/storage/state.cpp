@@ -69,7 +69,7 @@ bool CoreState::CheckAndClearExcFlag() {
   if (exc_code_ != kStateExcCodeReset) {
     exc_code_ = kStateExcCodeReset;
     // set machine mode EPC & next pc
-    core_.csr().set_mepc(pc_);
+    core_.csr().set_mepc(pc_ & ~0b11);
     next_pc_ = core_.csr().trap_vec();
     // update current privilege level
     auto priv = core_.csr().cur_priv();
