@@ -10,6 +10,7 @@
 #include "peripheral/interrupt/clint.h"
 #include "peripheral/storage/ram.h"
 #include "peripheral/storage/rom.h"
+#include "peripheral/general/confreg.h"
 #include "debugger/debugger.h"
 
 #include "define/mmio.h"
@@ -95,6 +96,7 @@ int main(int argc, const char *argv[]) {
   auto gpio = make_shared<GPIO>();
   auto clint = make_shared<CLINT>();
   auto flash = make_shared<ROM>();
+  auto confreg = make_shared<ConfReg>();
   if (!rom->LoadBinary(file)) {
     cerr << "error: failed to load file '" << file << "'" << endl;
     return 1;
@@ -110,6 +112,7 @@ int main(int argc, const char *argv[]) {
   bus->AddPeripheral(kMMIOAddrRAM, ram);
   bus->AddPeripheral(kMMIOAddrGPIO, gpio);
   bus->AddPeripheral(kMMIOAddrCLINT, clint);
+  bus->AddPeripheral(kMMIOAddrConfReg, confreg);
   if (flash->size()) {
     bus->AddPeripheral(kMMIOAddrFlash, flash);
   }
