@@ -7,7 +7,7 @@
 
 // address of memory mapped IOs
 constexpr std::uint32_t kMMIOAddrROM      = kResetVector;
-constexpr std::uint32_t kMMIOAddrConfReg  = 0x10008000;
+constexpr std::uint32_t kMMIOAddrConfReg  = 0x10000000;
 constexpr std::uint32_t kMMIOAddrRAM      = 0x80000000;
 constexpr std::uint32_t kMMIOAddrGPIO     = 0x90000000;
 constexpr std::uint32_t kMMIOAddrCLINT    = 0x90010000;
