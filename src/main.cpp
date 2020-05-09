@@ -96,7 +96,7 @@ int main(int argc, const char *argv[]) {
   auto gpio = make_shared<GPIO>();
   auto clint = make_shared<CLINT>();
   auto flash = make_shared<ROM>();
-  auto confreg = make_shared<ConfReg>();
+  auto confreg = make_shared<ConfReg>(1);
   if (!rom->LoadBinary(file)) {
     cerr << "error: failed to load file '" << file << "'" << endl;
     return 1;
