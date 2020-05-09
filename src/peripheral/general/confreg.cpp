@@ -7,6 +7,7 @@ namespace {
 
 constexpr std::uint32_t kAddrExit = 0x0000;
 constexpr std::uint32_t kAddrUART = 0x7ff0;
+constexpr std::uint32_t kAddrSwitch = 0xf020;
 
 }  // namespace
 
@@ -27,7 +28,10 @@ void ConfReg::WriteHalf(std::uint32_t addr, std::uint16_t value) {
 }
 
 std::uint32_t ConfReg::ReadWord(std::uint32_t addr) {
-  return 0;
+  switch (addr) {
+    case kAddrSwitch: return switch_data_;
+    default: return 0;
+  }
 }
 
 void ConfReg::WriteWord(std::uint32_t addr, std::uint32_t value) {
